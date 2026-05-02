@@ -54,7 +54,7 @@
     ]];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://i.imgur.com/xUC4J80.png"]];
+        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://i.imgur.com/4K8boi7.jpeg"]];
         if (data) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 imageView.image = [UIImage imageWithData:data];
