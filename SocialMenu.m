@@ -1,8 +1,7 @@
 #import <UIKit/UIKit.h>
-#import <WebKit/WebKit.h> // پێویستە بۆ کارپێکردنی ڕیکلامەکە
 
 // ------------------------------------------------------------------
-// ١. شاشەی بەخێرهاتنی مۆدێرن (Modern Glassmorphism Welcome Screen)
+// شاشەی بەخێرهاتنی مۆدێرن (Modern Glassmorphism Welcome Screen) بێ ڕیکلام
 // ------------------------------------------------------------------
 
 @interface AshteWelcomeViewController : UIViewController
@@ -243,49 +242,9 @@
 @end
 
 // ------------------------------------------------------------------
-// ٢. بەشی ڕیکلام (Ad Banner)
+// بەشێ ئینجێکتکرنێ بەبێ هیچ ڕیکلامێک
 // ------------------------------------------------------------------
-static void showAdBanner() {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
-#pragma clang diagnostic pop
-        
-        if (keyWindow) {
-            CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
-            CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
-            CGFloat bannerHeight = 60; // بەرزی ڕیکلامەکە
-            
-            // جێگیرکردنی لە خوارەوەی شاشەکە
-            CGRect bannerFrame = CGRectMake(0, screenHeight - bannerHeight - 30, screenWidth, bannerHeight);
-            
-            WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-            WKWebView *adWebView = [[WKWebView alloc] initWithFrame:bannerFrame configuration:config];
-            adWebView.scrollView.scrollEnabled = NO;
-            adWebView.backgroundColor = [UIColor clearColor];
-            adWebView.opaque = NO;
-            adWebView.layer.zPosition = 9999; // هەمیشە لە سەرەوە بێت
-            
-            // کۆدی ڕیکلامەکەی تۆ
-            NSString *adHTML = @"<html><body style='margin:0;padding:0;background-color:transparent;display:flex;justify-content:center;align-items:center;'><script src='https://pl28698373.profitablecpmratenetwork.com/d5/77/a5/d577a550908069c0ee7dce0a3adedeed.js'></script></body></html>";
-            
-            [adWebView loadHTMLString:adHTML baseURL:nil];
-            [keyWindow addSubview:adWebView];
-        }
-    });
-}
-
-// ------------------------------------------------------------------
-// ٣. بەشی سەرەکی و کارپێکردنی هەردووکیان پێکەوە (Injection)
-// ------------------------------------------------------------------
-__attribute__((constructor)) static void startAshteMobileTweaks() {
-    
-    // یەکەم: ئامادەکردنی ڕیکلامەکە لە پاشبنەمادا
-    showAdBanner();
-
-    // دووەم: نیشاندانی شاشەی بەخێرهاتنی مۆدێرن
+__attribute__((constructor)) static void showCustomWelcomeScreen() {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
 #pragma clang diagnostic push
