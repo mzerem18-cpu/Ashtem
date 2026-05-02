@@ -1,6 +1,9 @@
 #import <UIKit/UIKit.h>
 
+// --- گۆڕینی دیزاین بۆ ستایلی شاهانە و مۆدێرن ---
 @interface AshteWelcomeViewController : UIViewController
+@property (nonatomic, strong) UIVisualEffectView *blurView;
+@property (nonatomic, strong) UIView *containerView;
 - (void)openTelegram;
 - (void)openTikTok;
 - (void)openWebsite;
@@ -12,34 +15,54 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // شاشەکە هەمووی دەگرێت و باکگراوەندەکەی سپی ستانداردە
-    self.view.backgroundColor = [UIColor systemBackgroundColor];
+    // ١. شاشەکە هەمووی دەگرێت بە ستایلی تەڵخی (Dark Blur)
+    self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationFullScreen;
+
+    UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+    self.blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+    self.blurView.frame = self.view.bounds;
+    self.blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:self.blurView];
+
+    // ٢. دروستکردنی ناوەڕۆکی شاشەکە
+    self.containerView = [[UIView alloc] init];
+    self.containerView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:self.containerView];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [self.containerView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.containerView.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
+        [self.containerView.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.9]
+    ]];
 
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
-    mainStack.spacing = 30;
+    mainStack.spacing = 25;
     mainStack.alignment = UIStackViewAlignmentCenter;
     mainStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.view addSubview:mainStack];
+    [self.containerView addSubview:mainStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [mainStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [mainStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [mainStack.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.9]
+        [mainStack.topAnchor constraintEqualToAnchor:self.containerView.topAnchor],
+        [mainStack.bottomAnchor constraintEqualToAnchor:self.containerView.bottomAnchor],
+        [mainStack.leadingAnchor constraintEqualToAnchor:self.containerView.leadingAnchor],
+        [mainStack.trailingAnchor constraintEqualToAnchor:self.containerView.trailingAnchor]
     ]];
 
     // --- لۆگۆی ئەشتە مۆبایل ---
     UIImageView *imageView = [[UIImageView alloc] init];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
-    imageView.layer.cornerRadius = 25; 
+    imageView.layer.cornerRadius = 22; 
     imageView.clipsToBounds = YES;
+    imageView.layer.borderWidth = 2.0;
+    imageView.layer.borderColor = [UIColor whiteColor].CGColor;
     [mainStack addArrangedSubview:imageView];
 
     [NSLayoutConstraint activateConstraints:@[
-        [imageView.widthAnchor constraintEqualToConstant:100],
-        [imageView.heightAnchor constraintEqualToConstant:100]
+        [imageView.widthAnchor constraintEqualToConstant:90],
+        [imageView.heightAnchor constraintEqualToConstant:90]
     ]];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -51,38 +74,42 @@
         }
     });
 
-    // --- ناوی پڕۆژە ---
+    // --- تایتڵ بە فونتی مۆدێرن ---
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = @"AshteMobile";
-    titleLabel.font = [UIFont systemFontOfSize:28 weight:UIFontWeightBold];
-    titleLabel.textColor = [UIColor labelColor];
+    titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightHeavy];
+    titleLabel.textColor = [UIColor whiteColor];
     [mainStack addArrangedSubview:titleLabel];
 
-    // --- سۆشیاڵ میدیا دوگمەکان (لۆگۆی ڕەسەن) ---
-    UIStackView *buttonStack = [[UIStackView alloc] init];
-    buttonStack.axis = UILayoutConstraintAxisVertical;
-    buttonStack.spacing = 15;
-    buttonStack.alignment = UIStackViewAlignmentFill;
-    buttonStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [mainStack addArrangedSubview:buttonStack];
+    // --- سۆشیاڵ میدیا ---
+    UIStackView *rowStack = [[UIStackView alloc] init];
+    rowStack.axis = UILayoutConstraintAxisHorizontal;
+    rowStack.spacing = 15;
+    rowStack.distribution = UIStackViewDistributionFillEqually;
+    [mainStack addArrangedSubview:rowStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [buttonStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
+        [rowStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
     ]];
 
-    // دروستکردنی دوگمەکان بە لۆگۆی دەرەکی بۆ ئەوەی ئیرۆر نەدات
-    UIButton *tgBtn = [self createBtn:@"Telegram" color:[UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0] img:@"https://img.icons8.com/color/96/telegram-app.png" sel:@selector(openTelegram)];
-    UIButton *ttBtn = [self createBtn:@"TikTok" color:[UIColor blackColor] img:@"https://img.icons8.com/color/96/tiktok--v1.png" sel:@selector(openTikTok)];
-    UIButton *webBtn = [self createBtn:@"Website" color:[UIColor systemGrayColor] img:@"https://img.icons8.com/fluency/96/domain.png" sel:@selector(openWebsite)];
+    // دوگمەی تێلیگرام و تیکتۆک بە لۆگۆی ڕەسەن
+    UIButton *tgBtn = [self createSocialBtn:@"Telegram" color:[UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0] sel:@selector(openTelegram)];
+    UIButton *ttBtn = [self createSocialBtn:@"TikTok" color:[UIColor whiteColor] sel:@selector(openTikTok)];
+    
+    [rowStack addArrangedSubview:tgBtn];
+    [rowStack addArrangedSubview:ttBtn];
 
-    [buttonStack addArrangedSubview:tgBtn];
-    [buttonStack addArrangedSubview:ttBtn];
-    [buttonStack addArrangedSubview:webBtn];
+    UIButton *webBtn = [self createSocialBtn:@"Visit Official Website" color:[UIColor colorWithRed:0.9 green:0.2 blue:0.4 alpha:1.0] sel:@selector(openWebsite)];
+    [mainStack addArrangedSubview:webBtn];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [webBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
+    ]];
 
-    // --- دوگمەی Get Started ---
+    // --- دوگمەی خوارەوە (Get Started) ---
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    closeBtn.backgroundColor = [UIColor colorWithRed:0.0 green:0.47 blue:0.8 alpha:1.0];
-    closeBtn.layer.cornerRadius = 15;
+    closeBtn.backgroundColor = [UIColor colorWithRed:0.0 green:0.45 blue:0.9 alpha:1.0];
+    closeBtn.layer.cornerRadius = 18;
     [closeBtn setTitle:@"Get Started ➔" forState:UIControlStateNormal];
     [closeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     closeBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightBold];
@@ -90,33 +117,41 @@
     [mainStack addArrangedSubview:closeBtn];
 
     [NSLayoutConstraint activateConstraints:@[
-        [closeBtn.widthAnchor constraintEqualToAnchor:buttonStack.widthAnchor],
+        [closeBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
         [closeBtn.heightAnchor constraintEqualToConstant:55]
     ]];
 }
 
-- (UIButton *)createBtn:(NSString *)t color:(UIColor *)c img:(NSString *)url sel:(SEL)s {
-    UIButton *b = [UIButton buttonWithType:UIButtonTypeSystem];
-    b.backgroundColor = [UIColor secondarySystemBackgroundColor];
-    b.layer.cornerRadius = 12;
-    [b setTitle:t forState:UIControlStateNormal];
-    [b setTitleColor:[UIColor labelColor] forState:UIControlStateNormal];
-    b.titleLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightSemibold];
-    [b addTarget:self action:s forControlEvents:UIControlEventTouchUpInside];
-    
-    [NSLayoutConstraint activateConstraints:@[[b.heightAnchor constraintEqualToConstant:50]]];
-    return b;
+- (UIButton *)createSocialBtn:(NSString *)title color:(UIColor *)color sel:(SEL)selector {
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
+    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.12];
+    btn.layer.cornerRadius = 15;
+    btn.layer.borderWidth = 1.0;
+    btn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.2].CGColor;
+    [btn setTitle:title forState:UIControlStateNormal];
+    [btn setTitleColor:color forState:UIControlStateNormal];
+    btn.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightBold];
+    [btn addTarget:self action:selector forControlEvents:UIControlEventTouchUpInside];
+    [btn.heightAnchor constraintEqualToConstant:50].active = YES;
+    return btn;
 }
 
 - (void)openTelegram { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
 - (void)openTikTok { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
 - (void)openWebsite { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
-- (void)closeTapped { [self dismissViewControllerAnimated:NO completion:nil]; }
+
+- (void)closeTapped {
+    [UIView animateWithDuration:0.3 animations:^{
+        self.view.alpha = 0;
+    } completion:^(BOOL finished) {
+        [self dismissViewControllerAnimated:NO completion:nil];
+    }];
+}
 
 @end
 
-// ئینجێکتکردنی خێرا
-__attribute__((constructor)) static void showCustomWelcomeScreen() {
+// ئینجێکتکردنی خێرا بێ چاوەڕێکردن
+__attribute__((constructor)) static void startAshteMobile() {
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
