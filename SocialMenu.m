@@ -54,7 +54,7 @@
     ]];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/a.png"]];
+        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://i.imgur.com/jKfIh4z.jpeg"]];
         if (data) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 imageView.image = [UIImage imageWithData:data];
@@ -64,7 +64,7 @@
 
     // --- دەقی پێشوازی ---
     UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.text = @"AshteMobile";
+    titleLabel.text = @"IPAOMTK";
     titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightBold];
     titleLabel.textColor = [UIColor labelColor];
     [mainStack addArrangedSubview:titleLabel];
@@ -229,9 +229,9 @@
 }
 
 // کارکرنا لینکان
-- (void)openTelegram { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
-- (void)openTikTok { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
-- (void)openWebsite { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
+- (void)openTelegram { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ipaomtk"] options:@{} completionHandler:nil]; }
+- (void)openTikTok { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ipaomtk"] options:@{} completionHandler:nil]; }
+- (void)openWebsite { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ipaomtk.com"] options:@{} completionHandler:nil]; }
 - (void)closeTapped { [self dismissViewControllerAnimated:YES completion:nil]; }
 
 @end
