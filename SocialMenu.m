@@ -1,5 +1,8 @@
 #import <UIKit/UIKit.h>
 
+// دروستکردنی گۆڕاوێک بۆ پەنجەرە تایبەتەکەی خۆت
+static UIWindow *ashteWindow = nil;
+
 @interface AshteWelcomeViewController : UIViewController
 - (void)openTelegram;
 - (void)openTikTok;
@@ -12,9 +15,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // باکگراوندی خاوێن (سپی)
     self.view.backgroundColor = [UIColor systemBackgroundColor];
-    self.modalPresentationStyle = UIModalPresentationFullScreen;
 
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
@@ -25,11 +26,10 @@
 
     [NSLayoutConstraint activateConstraints:@[
         [mainStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [mainStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [mainStack.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.85]
+        [mainStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor]
     ]];
 
-    // --- لۆگۆی کەسی (وەک ئەپ بە چوارگۆشەی خڕ و سێبەرەوە) ---
+    // --- لۆگۆی کەسی ---
     UIView *iconShadowContainer = [[UIView alloc] init];
     iconShadowContainer.layer.shadowColor = [UIColor blackColor].CGColor;
     iconShadowContainer.layer.shadowOpacity = 0.15;
@@ -81,14 +81,14 @@
     topHStack.spacing = 15;
     [buttonsVStack addArrangedSubview:topHStack];
 
-    // ١. دوگمەی تێلیگرام
+    // ١. تێلیگرام
     UIButton *tgBtn = [self createPillButton:@"Telegram"
                                        color:[UIColor colorWithRed:0.0 green:0.55 blue:1.0 alpha:1.0]
                                     iconName:@"paperplane.fill" 
                                      urlIcon:nil
                                       action:@selector(openTelegram)];
 
-    // ٢. دوگمەی تیکتۆک
+    // ٢. تیکتۆک
     UIButton *ttBtn = [self createPillButton:@"TikTok"
                                        color:[UIColor blackColor]
                                     iconName:nil
@@ -98,7 +98,7 @@
     [topHStack addArrangedSubview:tgBtn];
     [topHStack addArrangedSubview:ttBtn];
 
-    // ٣. دوگمەی وێبسایت
+    // ٣. وێبسایت
     UIButton *webBtn = [self createPillButton:@"Website"
                                        color:[UIColor colorWithRed:0.9 green:0.25 blue:0.45 alpha:1.0] 
                                     iconName:@"safari.fill" 
@@ -107,17 +107,16 @@
     
     [buttonsVStack addArrangedSubview:webBtn];
 
-    // --- بۆشایی نێوان سۆشیاڵ میدیا و دوگمەی سەرەکی ---
+    // --- بۆشایی ---
     UIView *spacer = [[UIView alloc] init];
     [spacer.heightAnchor constraintEqualToConstant:15].active = YES;
     [mainStack addArrangedSubview:spacer];
 
-    // --- دوگمەی Get Started (ڕێک وەک وێنەکە) ---
+    // --- دوگمەی Get Started ---
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    closeBtn.backgroundColor = [UIColor colorWithRed:0.04 green:0.47 blue:0.80 alpha:1.0]; // شینە تایبەتەکەی وێنەکە
+    closeBtn.backgroundColor = [UIColor colorWithRed:0.04 green:0.47 blue:0.80 alpha:1.0];
     closeBtn.layer.cornerRadius = 18;
     
-    // سێبەری شین (Glow) بۆ دوگمەکە
     closeBtn.layer.shadowColor = closeBtn.backgroundColor.CGColor;
     closeBtn.layer.shadowOpacity = 0.4;
     closeBtn.layer.shadowOffset = CGSizeMake(0, 8);
@@ -131,13 +130,12 @@
         [closeBtn.heightAnchor constraintEqualToConstant:60]
     ]];
 
-    // دروستکردنی ناوەوەی دوگمەکە (دەق + ئایکۆن)
     UIStackView *closeStack = [[UIStackView alloc] init];
     closeStack.axis = UILayoutConstraintAxisHorizontal;
     closeStack.spacing = 12;
     closeStack.alignment = UIStackViewAlignmentCenter;
     closeStack.translatesAutoresizingMaskIntoConstraints = NO;
-    closeStack.userInteractionEnabled = NO; // بۆ ئەوەی ڕێگری لە کلیک نەکات
+    closeStack.userInteractionEnabled = NO; 
     [closeBtn addSubview:closeStack];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -151,7 +149,6 @@
     closeLabel.font = [UIFont systemFontOfSize:20 weight:UIFontWeightBold];
     [closeStack addArrangedSubview:closeLabel];
 
-    // ئایکۆنە بازنەییە سپییەکەی ناو دوگمەکە
     UIImageView *closeIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"arrow.right.circle.fill"]];
     closeIcon.tintColor = [UIColor whiteColor];
     closeIcon.contentMode = UIViewContentModeScaleAspectFit;
@@ -163,13 +160,12 @@
     ]];
 }
 
-// فەنکشنی دروستکردنی دوگمەکانی وێنەکە (Pill Shape لەگەڵ Glow)
+// فەنکشنی دروستکردنی دوگمەکان
 - (UIButton *)createPillButton:(NSString *)title color:(UIColor *)color iconName:(NSString *)iconName urlIcon:(NSString *)urlIcon action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
     btn.backgroundColor = color;
-    btn.layer.cornerRadius = 25; // Capsule shape
+    btn.layer.cornerRadius = 25; 
 
-    // سێبەری ڕەنگاوڕەنگ وەک وێنەکە (Glow)
     btn.layer.shadowColor = color.CGColor;
     btn.layer.shadowOpacity = 0.5;
     btn.layer.shadowOffset = CGSizeMake(0, 5);
@@ -232,30 +228,51 @@
 - (void)openTelegram { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
 - (void)openTikTok { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
 - (void)openWebsite { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
-- (void)closeTapped { [self dismissViewControllerAnimated:YES completion:nil]; }
+
+// سڕینەوەی پەنجەرەکە کاتێک کلیک لە دوگمەکە دەکرێت بۆ ئەوەی یارییەکە دەربکەوێت
+- (void)closeTapped { 
+    [UIView animateWithDuration:0.3 animations:^{
+        self.view.alpha = 0.0;
+    } completion:^(BOOL finished) {
+        ashteWindow.hidden = YES;
+        ashteWindow = nil;
+    }];
+}
 
 @end
 
 // ------------------------------------------------------------------
-// بەشێ ئینجێکتکرنێ
+// بەشێ ئینجێکتکرنێ (سیستەمی نوێ بۆ بلۆککردنی ئەپەکە سەرەتا)
 // ------------------------------------------------------------------
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    // چاودێری دەکەین هەر کە ئەپەکە چالاک بوو (Active) یەکسەر شاشەی تۆ نیشان دەدەین بێ چاوەڕوانکردن
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
         
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
-#pragma clang diagnostic pop
-        
-        UIViewController *rootViewController = keyWindow.rootViewController;
-        if (rootViewController) {
-            UIViewController *topController = rootViewController;
-            while (topController.presentedViewController) {
-                topController = topController.presentedViewController;
+        // ئەمە دڵنیایی دەدات کە تەنها یەک جار ئەمە ڕوودەدات نەک هەموو جارێک کە ئەپەکە دێتە خوارەوە
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            
+            // دروستکردنی پەنجەرەیەکی سەربەخۆ لە سەرووی یارییەکە/ئەپەکەوە
+            if (@available(iOS 13.0, *)) {
+                for (UIWindowScene *scene in [UIApplication sharedApplication].connectedScenes) {
+                    if (scene.activationState == UISceneActivationStateForegroundActive) {
+                        ashteWindow = [[UIWindow alloc] initWithWindowScene:scene];
+                        break;
+                    }
+                }
             }
             
+            if (!ashteWindow) {
+                ashteWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+            }
+            
+            // UIWindowLevelAlert مانای وایە ئەمە لە سەرووی هەموو شتێکەوەیە تەنانەت ئاگادارکردنەوەکانیش
+            ashteWindow.windowLevel = UIWindowLevelAlert + 1;
+            ashteWindow.backgroundColor = [UIColor clearColor];
+            
             AshteWelcomeViewController *welcomeVC = [[AshteWelcomeViewController alloc] init];
-            [topController presentViewController:welcomeVC animated:YES completion:nil];
-        }
-    });
+            ashteWindow.rootViewController = welcomeVC;
+            [ashteWindow makeKeyAndVisible]; // یەکسەر دەیهێنێتە سەر شاشەکە
+        });
+    }];
 }
