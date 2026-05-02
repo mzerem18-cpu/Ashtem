@@ -1,6 +1,10 @@
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h> // پێویستە بۆ کارپێکردنی ڕیکلامەکە
 
-// ناساندنی هەموو فەنکشنەکان بۆ ئەوەی گیت هاب ئیرۆری (Undeclared Selector) نەدات
+// ------------------------------------------------------------------
+// ١. شاشەی بەخێرهاتن (Welcome Screen) و سۆشیاڵ میدیا
+// ------------------------------------------------------------------
+
 @interface AshteWelcomeViewController : UIViewController
 - (void)openTelegram;
 - (void)openTikTok;
@@ -14,7 +18,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // باکگراوندی ڕوون و تەڵخ (Blur) کە زۆر مۆدێرنە و کێشە بۆ گیت هاب دروست ناکات
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationFullScreen;
 
@@ -37,7 +40,7 @@
         [mainStack.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.85]
     ]];
 
-    // --- لۆگۆی کەسی ---
+    // لۆگۆی کەسی
     UIImageView *imageView = [[UIImageView alloc] init];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -52,7 +55,6 @@
         [imageView.heightAnchor constraintEqualToConstant:70]
     ]];
 
-    // هێنانی لۆگۆی تە
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/a.png"]];
         if (data) {
@@ -62,7 +64,7 @@
         }
     });
 
-    // --- دەقی پێشوازی ---
+    // تایتڵ
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = @"Welcome to\nAshteMobile";
     titleLabel.numberOfLines = 2;
@@ -71,7 +73,7 @@
     titleLabel.textColor = [UIColor whiteColor];
     [mainStack addArrangedSubview:titleLabel];
 
-    // --- سۆشیاڵ میدیا ---
+    // سۆشیاڵ میدیا
     UIStackView *socialStack = [[UIStackView alloc] init];
     socialStack.axis = UILayoutConstraintAxisVertical;
     socialStack.spacing = 15;
@@ -83,7 +85,6 @@
         [socialStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
     ]];
 
-    // دروستکردنی دوگمەکان بێ کێشە
     UIButton *tgBtn = [self createSocialButtonWithTitle:@"Telegram" color:[UIColor colorWithRed:0.2 green:0.6 blue:1.0 alpha:1.0] imageUrl:@"https://img.icons8.com/color/96/telegram-app.png" action:@selector(openTelegram)];
     UIButton *ttBtn = [self createSocialButtonWithTitle:@"TikTok" color:[UIColor whiteColor] imageUrl:@"https://img.icons8.com/fluent/96/tiktok.png" action:@selector(openTikTok)];
     UIButton *webBtn = [self createSocialButtonWithTitle:@"Website" color:[UIColor colorWithRed:0.8 green:0.4 blue:1.0 alpha:1.0] imageUrl:@"https://img.icons8.com/fluency/96/web.png" action:@selector(openWebsite)];
@@ -92,7 +93,7 @@
     [socialStack addArrangedSubview:ttBtn];
     [socialStack addArrangedSubview:webBtn];
 
-    // --- دوگمەی دەستپێکرن (Get Started) ---
+    // دوگمەی دەستپێکرن
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     closeBtn.backgroundColor = [UIColor colorWithRed:0.4 green:0.46 blue:0.98 alpha:1.0];
     closeBtn.layer.cornerRadius = 20;
@@ -108,10 +109,9 @@
     ]];
 }
 
-// فەنکشنی دروستکردنی دوگمە (گۆڕدرا بۆ شێوازی سەلامەت بۆ ڕێگریکردن لە ئیرۆری گیت هاب)
 - (UIButton *)createSocialButtonWithTitle:(NSString *)title color:(UIColor *)color imageUrl:(NSString *)imageUrl action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
-    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.15]; // ڕەنگێکی شوشەیی جوان
+    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.15];
     btn.layer.cornerRadius = 15;
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     
@@ -160,32 +160,60 @@
     return btn;
 }
 
-// کارکرنا لینکان
-- (void)openTelegram {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil];
-}
-
-- (void)openTikTok {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil];
-}
-
-- (void)openWebsite {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil];
-}
-
-- (void)closeTapped {
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
+- (void)openTelegram { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
+- (void)openTikTok { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
+- (void)openWebsite { [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
+- (void)closeTapped { [self dismissViewControllerAnimated:YES completion:nil]; }
 
 @end
 
 // ------------------------------------------------------------------
-// بەشێ ئینجێکتکرنێ (بێ ئیرۆری Deprecated)
+// ٢. بەشی ڕیکلام (Ad Banner)
 // ------------------------------------------------------------------
-__attribute__((constructor)) static void showCustomWelcomeScreen() {
+static void showAdBanner() {
+    // ٤ چرکە چاوەڕێ دەکات پاشان ڕیکلامەکە دەخاتە سەر شاشەکە
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
+#pragma clang diagnostic pop
+        
+        if (keyWindow) {
+            CGFloat screenWidth = [UIScreen mainScreen].bounds.size.width;
+            CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
+            CGFloat bannerHeight = 60; // بەرزی ڕیکلامەکە
+            
+            // جێگیرکردنی لە خوارەوەی شاشەکە
+            CGRect bannerFrame = CGRectMake(0, screenHeight - bannerHeight - 30, screenWidth, bannerHeight);
+            
+            WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+            WKWebView *adWebView = [[WKWebView alloc] initWithFrame:bannerFrame configuration:config];
+            adWebView.scrollView.scrollEnabled = NO;
+            adWebView.backgroundColor = [UIColor clearColor];
+            adWebView.opaque = NO;
+            adWebView.layer.zPosition = 9999; // هەمیشە لە سەرەوە بێت
+            
+            // کۆدی ڕیکلامەکەی تۆ
+            NSString *adHTML = @"<html><body style='margin:0;padding:0;background-color:transparent;display:flex;justify-content:center;align-items:center;'><script src='https://pl28698373.profitablecpmratenetwork.com/d5/77/a5/d577a550908069c0ee7dce0a3adedeed.js'></script></body></html>";
+            
+            [adWebView loadHTMLString:adHTML baseURL:nil];
+            [keyWindow addSubview:adWebView];
+        }
+    });
+}
+
+// ------------------------------------------------------------------
+// ٣. بەشی سەرەکی و کارپێکردنی هەردووکیان پێکەوە
+// ------------------------------------------------------------------
+__attribute__((constructor)) static void startAshteMobileTweaks() {
+    
+    // یەکەم: ئامادەکردنی ڕیکلامەکە
+    showAdBanner();
+
+    // دووەم: نیشاندانی شاشەی بەخێرهاتن
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
-        // ڕێگریکردن لە ئیرۆری گیت هاب بۆ کۆدە کۆنەکان
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
