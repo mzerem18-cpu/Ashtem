@@ -12,7 +12,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // باکگراوندی خاوێن وەک وێنەکە (لە لایت مۆد سپییە، لە دارک مۆد ڕەشە)
+    // باکگراوندی خاوێن (سپی)
     self.view.backgroundColor = [UIColor systemBackgroundColor];
     self.modalPresentationStyle = UIModalPresentationFullScreen;
 
@@ -25,7 +25,8 @@
 
     [NSLayoutConstraint activateConstraints:@[
         [mainStack.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [mainStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor]
+        [mainStack.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
+        [mainStack.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.85]
     ]];
 
     // --- لۆگۆی کەسی (وەک ئەپ بە چوارگۆشەی خڕ و سێبەرەوە) ---
@@ -39,7 +40,7 @@
     UIImageView *imageView = [[UIImageView alloc] init];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
-    imageView.layer.cornerRadius = 24; // خڕکردنی لێوارەکان وەک ئەپ
+    imageView.layer.cornerRadius = 24; 
     imageView.clipsToBounds = YES;
     [iconShadowContainer addSubview:imageView];
 
@@ -61,14 +62,14 @@
         }
     });
 
-    // --- دەقی پێشوازی (وەک وێنەکە) ---
+    // --- دەقی پێشوازی ---
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = @"AshteMobile";
     titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightBold];
     titleLabel.textColor = [UIColor labelColor];
     [mainStack addArrangedSubview:titleLabel];
 
-    // --- سۆشیاڵ میدیا دوگمەکان (ڕێک وەک وێنەکە بریقەدار و خڕ) ---
+    // --- سۆشیاڵ میدیا دوگمەکان ---
     UIStackView *buttonsVStack = [[UIStackView alloc] init];
     buttonsVStack.axis = UILayoutConstraintAxisVertical;
     buttonsVStack.spacing = 15;
@@ -83,40 +84,83 @@
     // ١. دوگمەی تێلیگرام
     UIButton *tgBtn = [self createPillButton:@"Telegram"
                                        color:[UIColor colorWithRed:0.0 green:0.55 blue:1.0 alpha:1.0]
-                                    iconName:@"paperplane.fill" // ئایکۆنی ناوەکی ئەپڵ
+                                    iconName:@"paperplane.fill" 
                                      urlIcon:nil
                                       action:@selector(openTelegram)];
 
-    // ٢. دوگمەی تیکتۆک (لە تەنیشت تێلیگرام)
+    // ٢. دوگمەی تیکتۆک
     UIButton *ttBtn = [self createPillButton:@"TikTok"
                                        color:[UIColor blackColor]
                                     iconName:nil
-                                     urlIcon:@"https://img.icons8.com/ios-filled/100/ffffff/tiktok.png" // ئایکۆنی سپی
+                                     urlIcon:@"https://img.icons8.com/ios-filled/100/ffffff/tiktok.png"
                                       action:@selector(openTikTok)];
 
     [topHStack addArrangedSubview:tgBtn];
     [topHStack addArrangedSubview:ttBtn];
 
-    // ٣. دوگمەی وێبسایت (لە خوارەوەیان)
+    // ٣. دوگمەی وێبسایت
     UIButton *webBtn = [self createPillButton:@"Website"
-                                       color:[UIColor colorWithRed:0.9 green:0.25 blue:0.45 alpha:1.0] // ڕەنگێکی جوانی سوور/پەمەیی
-                                    iconName:@"safari.fill" // ئایکۆنی ناوەکی ئەپڵ
+                                       color:[UIColor colorWithRed:0.9 green:0.25 blue:0.45 alpha:1.0] 
+                                    iconName:@"safari.fill" 
                                      urlIcon:nil
                                       action:@selector(openWebsite)];
     
     [buttonsVStack addArrangedSubview:webBtn];
 
-    // --- بۆشایی و دوگمەی چوونە ناو ئەپ ---
+    // --- بۆشایی نێوان سۆشیاڵ میدیا و دوگمەی سەرەکی ---
     UIView *spacer = [[UIView alloc] init];
-    [spacer.heightAnchor constraintEqualToConstant:20].active = YES;
+    [spacer.heightAnchor constraintEqualToConstant:15].active = YES;
     [mainStack addArrangedSubview:spacer];
 
+    // --- دوگمەی Get Started (ڕێک وەک وێنەکە) ---
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    [closeBtn setTitle:@"Continue to App ➔" forState:UIControlStateNormal];
-    [closeBtn setTitleColor:[UIColor systemGrayColor] forState:UIControlStateNormal];
-    closeBtn.titleLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightMedium];
+    closeBtn.backgroundColor = [UIColor colorWithRed:0.04 green:0.47 blue:0.80 alpha:1.0]; // شینە تایبەتەکەی وێنەکە
+    closeBtn.layer.cornerRadius = 18;
+    
+    // سێبەری شین (Glow) بۆ دوگمەکە
+    closeBtn.layer.shadowColor = closeBtn.backgroundColor.CGColor;
+    closeBtn.layer.shadowOpacity = 0.4;
+    closeBtn.layer.shadowOffset = CGSizeMake(0, 8);
+    closeBtn.layer.shadowRadius = 15;
+    
     [closeBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
     [mainStack addArrangedSubview:closeBtn];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [closeBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
+        [closeBtn.heightAnchor constraintEqualToConstant:60]
+    ]];
+
+    // دروستکردنی ناوەوەی دوگمەکە (دەق + ئایکۆن)
+    UIStackView *closeStack = [[UIStackView alloc] init];
+    closeStack.axis = UILayoutConstraintAxisHorizontal;
+    closeStack.spacing = 12;
+    closeStack.alignment = UIStackViewAlignmentCenter;
+    closeStack.translatesAutoresizingMaskIntoConstraints = NO;
+    closeStack.userInteractionEnabled = NO; // بۆ ئەوەی ڕێگری لە کلیک نەکات
+    [closeBtn addSubview:closeStack];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [closeStack.centerXAnchor constraintEqualToAnchor:closeBtn.centerXAnchor],
+        [closeStack.centerYAnchor constraintEqualToAnchor:closeBtn.centerYAnchor]
+    ]];
+
+    UILabel *closeLabel = [[UILabel alloc] init];
+    closeLabel.text = @"Get Started";
+    closeLabel.textColor = [UIColor whiteColor];
+    closeLabel.font = [UIFont systemFontOfSize:20 weight:UIFontWeightBold];
+    [closeStack addArrangedSubview:closeLabel];
+
+    // ئایکۆنە بازنەییە سپییەکەی ناو دوگمەکە
+    UIImageView *closeIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"arrow.right.circle.fill"]];
+    closeIcon.tintColor = [UIColor whiteColor];
+    closeIcon.contentMode = UIViewContentModeScaleAspectFit;
+    [closeStack addArrangedSubview:closeIcon];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [closeIcon.widthAnchor constraintEqualToConstant:26],
+        [closeIcon.heightAnchor constraintEqualToConstant:26]
+    ]];
 }
 
 // فەنکشنی دروستکردنی دوگمەکانی وێنەکە (Pill Shape لەگەڵ Glow)
@@ -148,7 +192,7 @@
 
     UIImageView *iconView = [[UIImageView alloc] init];
     iconView.contentMode = UIViewContentModeScaleAspectFit;
-    iconView.tintColor = [UIColor whiteColor]; // ئایکۆنی سپی
+    iconView.tintColor = [UIColor whiteColor]; 
     [contentStack addArrangedSubview:iconView];
 
     [NSLayoutConstraint activateConstraints:@[
@@ -172,7 +216,7 @@
 
     UILabel *label = [[UILabel alloc] init];
     label.text = title;
-    label.textColor = [UIColor whiteColor]; // دەقی سپی
+    label.textColor = [UIColor whiteColor];
     label.font = [UIFont systemFontOfSize:16 weight:UIFontWeightBold];
     [contentStack addArrangedSubview:label];
 
