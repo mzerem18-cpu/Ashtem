@@ -2,13 +2,13 @@
 
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
-@property (nonatomic, strong) UIImageView *logoView; // زیادکراوە بۆ ئەنیمەیشنەکە
+@property (nonatomic, strong) UIImageView *logoView; 
 - (void)openTelegram;
 - (void)openTikTok;
 - (void)openWebsite;
 - (void)closeTapped;
 - (void)playHaptic;
-- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView;
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
 @end
 
 @implementation AshteWelcomeViewController
@@ -61,7 +61,6 @@
     headerStack.alignment = UIStackViewAlignmentCenter;
     [mainStack addArrangedSubview:headerStack];
 
-    // کۆنتەینەر بۆ ئەوەی ئەنیمەیشنەکە بەبێ کێشەی AutoLayout کار بکات
     UIView *logoContainer = [[UIView alloc] init];
     logoContainer.translatesAutoresizingMaskIntoConstraints = NO;
     [headerStack addArrangedSubview:logoContainer];
@@ -70,18 +69,17 @@
         [logoContainer.heightAnchor constraintEqualToConstant:48]
     ]];
 
-    // دروستکردنی لۆگۆکەت
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
     self.logoView.layer.cornerRadius = 22; 
     self.logoView.clipsToBounds = YES;
     self.logoView.layer.borderWidth = 1.5;
     self.logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.3].CGColor;
-    self.logoView.frame = CGRectMake(2, 2, 44, 44); // لە ناوەڕاستی کۆنتەینەرەکە دایدەنێین
+    self.logoView.frame = CGRectMake(2, 2, 44, 44); 
     [logoContainer addSubview:self.logoView];
 
-    // هێنانی لۆگۆی خۆت بە سیستەمی کاش
-    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView];
+    // هێنانی لۆگۆی خۆت بە سیستەمی هەمیشەیی و خێرا
+    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"person.circle.fill"];
 
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
@@ -112,9 +110,10 @@
     socialStack.distribution = UIStackViewDistributionFillEqually;
     [mainStack addArrangedSubview:socialStack];
 
-    UIButton *tgBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" action:@selector(openTelegram)];
-    UIButton *ttBtn = [self createSquareSocialButton:@"https://img.icons8.com/fluency/100/tiktok.png" action:@selector(openTikTok)];
-    UIButton *webBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" action:@selector(openWebsite)];
+    // دانانی ئایکۆنی جێگرەوە (Placeholder) بۆ هەر یەکێکیان
+    UIButton *tgBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
+    UIButton *ttBtn = [self createSquareSocialButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
+    UIButton *webBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
 
     [socialStack addArrangedSubview:tgBtn];
     [socialStack addArrangedSubview:ttBtn];
@@ -138,34 +137,44 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    // دەرکەوتنی کارتەکە
     [UIView animateWithDuration:0.4 animations:^{
         self.glassCard.alpha = 1.0;
     }];
     
-    // === ئەنیمەیشنی (لێدانی دڵ)ی لۆگۆکەت بەبێ ئێرۆری QuartzCore ===
+    // ئەنیمەیشنی (لێدانی دڵ)ی لۆگۆکەت وەک خۆی ماوەتەوە
     [UIView animateWithDuration:1.2
                           delay:0.0
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
-                         // لۆگۆکە گەورە دەبێت
                          self.logoView.frame = CGRectMake(0, 0, 48, 48);
                          self.logoView.layer.cornerRadius = 24;
                      } completion:nil];
 }
 
-// سیستەمی خەزنکردن و خێراکردنی لۆگۆکان
-- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView {
-    NSString *cachePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[urlStr lastPathComponent]];
+// سیستەمی نوێ: خەزنکردنی هەمیشەیی و بەکارهێنانی Placeholder بە خێرایی سفر چرکە
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
+    // یەکەم جار بە خێرایی باوەڕپێنەکراو ئایکۆنی ئەپڵ خۆی دادەنێت تا شاشەکە بەتاڵ نەبێت
+    if (sysName) {
+        imgView.image = [UIImage systemImageNamed:sysName];
+        imgView.tintColor = [UIColor colorWithWhite:1.0 alpha:0.4];
+    }
+    
+    // بەکارهێنانی Document Directory کە هەرگیز ناسڕێتەوە
+    NSString *docDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *safeName = [[urlStr componentsSeparatedByString:@"/"] lastObject];
+    NSString *cachePath = [docDir stringByAppendingPathComponent:safeName];
+    
     NSData *cachedData = [NSData dataWithContentsOfFile:cachePath];
     
     if (cachedData) {
+        // ئەگەر پێشتر داونلۆد کرابوو، ڕاستەوخۆ دایدەنێتەوە
         imgView.image = [UIImage imageWithData:cachedData];
     } else {
+        // ئەگەر یەکەم جار بوو، دایبەزێنە و بۆ هەمیشە خەزنی بکە
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
             NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlStr]];
             if (data) {
-                [data writeToFile:cachePath atomically:YES];
+                [data writeToFile:cachePath atomically:YES]; // خەزنکردنی هەمیشەیی
                 dispatch_async(dispatch_get_main_queue(), ^{
                     imgView.image = [UIImage imageWithData:data];
                 });
@@ -174,7 +183,7 @@
     }
 }
 
-- (UIButton *)createSquareSocialButton:(NSString *)url action:(SEL)action {
+- (UIButton *)createSquareSocialButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.06];
     btn.layer.cornerRadius = 14;
@@ -194,7 +203,7 @@
         [icon.heightAnchor constraintEqualToConstant:28]
     ]];
 
-    [self loadAndCacheImage:url forImageView:icon];
+    [self loadAndCacheImage:url forImageView:icon placeholder:ph];
 
     return btn;
 }
