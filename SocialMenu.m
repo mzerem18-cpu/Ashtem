@@ -1,8 +1,8 @@
 #import <UIKit/UIKit.h>
-#import <QuartzCore/QuartzCore.h> // زیادکراوە بۆ ئەنیمەیشنی لۆگۆکە بەبێ ئێرۆر
 
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
+@property (nonatomic, strong) UIImageView *logoView; // زیادکراوە بۆ ئەنیمەیشنەکە
 - (void)openTelegram;
 - (void)openTikTok;
 - (void)openWebsite;
@@ -61,32 +61,27 @@
     headerStack.alignment = UIStackViewAlignmentCenter;
     [mainStack addArrangedSubview:headerStack];
 
-    UIImageView *logoView = [[UIImageView alloc] init];
-    logoView.contentMode = UIViewContentModeScaleAspectFill;
-    logoView.layer.cornerRadius = 22; 
-    logoView.clipsToBounds = YES;
-    logoView.layer.borderWidth = 1.5;
-    logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.3].CGColor;
-    logoView.translatesAutoresizingMaskIntoConstraints = NO;
-    [headerStack addArrangedSubview:logoView];
-
+    // کۆنتەینەر بۆ ئەوەی ئەنیمەیشنەکە بەبێ کێشەی AutoLayout کار بکات
+    UIView *logoContainer = [[UIView alloc] init];
+    logoContainer.translatesAutoresizingMaskIntoConstraints = NO;
+    [headerStack addArrangedSubview:logoContainer];
     [NSLayoutConstraint activateConstraints:@[
-        [logoView.widthAnchor constraintEqualToConstant:44],
-        [logoView.heightAnchor constraintEqualToConstant:44]
+        [logoContainer.widthAnchor constraintEqualToConstant:48],
+        [logoContainer.heightAnchor constraintEqualToConstant:48]
     ]];
 
-    // هێنانی لۆگۆی خۆت بە سیستەمی کاش
-    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:logoView];
+    // دروستکردنی لۆگۆکەت
+    self.logoView = [[UIImageView alloc] init];
+    self.logoView.contentMode = UIViewContentModeScaleAspectFill;
+    self.logoView.layer.cornerRadius = 22; 
+    self.logoView.clipsToBounds = YES;
+    self.logoView.layer.borderWidth = 1.5;
+    self.logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.3].CGColor;
+    self.logoView.frame = CGRectMake(2, 2, 44, 44); // لە ناوەڕاستی کۆنتەینەرەکە دایدەنێین
+    [logoContainer addSubview:self.logoView];
 
-    // === ئەنیمەیشنی (لێدانی دڵ) تەنها بۆ لۆگۆکەت ===
-    CABasicAnimation *pulseAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
-    pulseAnimation.duration = 1.2; // خێرایی گەورەبوونەکە
-    pulseAnimation.toValue = @1.08; // کەمێک گەورە دەبێت
-    pulseAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-    pulseAnimation.autoreverses = YES; // ئۆتۆماتیکی دەگەڕێتەوە باری خۆی
-    pulseAnimation.repeatCount = HUGE_VALF; // بۆ هەمیشە و بێ وەستان دووبارە دەبێتەوە
-    [logoView.layer addAnimation:pulseAnimation forKey:@"pulse"];
-    // ===============================================
+    // هێنانی لۆگۆی خۆت بە سیستەمی کاش
+    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView];
 
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
@@ -142,9 +137,21 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    
+    // دەرکەوتنی کارتەکە
     [UIView animateWithDuration:0.4 animations:^{
         self.glassCard.alpha = 1.0;
     }];
+    
+    // === ئەنیمەیشنی (لێدانی دڵ)ی لۆگۆکەت بەبێ ئێرۆری QuartzCore ===
+    [UIView animateWithDuration:1.2
+                          delay:0.0
+                        options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
+                     animations:^{
+                         // لۆگۆکە گەورە دەبێت
+                         self.logoView.frame = CGRectMake(0, 0, 48, 48);
+                         self.logoView.layer.cornerRadius = 24;
+                     } completion:nil];
 }
 
 // سیستەمی خەزنکردن و خێراکردنی لۆگۆکان
