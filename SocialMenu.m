@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h> // زیادکراوە بۆ ئەنیمەیشنی لۆگۆکە بەبێ ئێرۆر
 
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
@@ -7,6 +8,7 @@
 - (void)openWebsite;
 - (void)closeTapped;
 - (void)playHaptic;
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView;
 @end
 
 @implementation AshteWelcomeViewController
@@ -17,31 +19,28 @@
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی تەڵخ
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
     blurView.frame = self.view.bounds;
     blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:blurView];
 
-    // کارتی مۆدێرن (شێوەی Widget)
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor colorWithRed:0.08 green:0.08 blue:0.09 alpha:0.85];
     self.glassCard.layer.cornerRadius = 24;
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.1].CGColor;
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0; // ئامادەکردن بۆ ئەنیمەیشنی دەرکەوتن
+    self.glassCard.alpha = 0; 
     
     [self.view addSubview:self.glassCard];
     
     [NSLayoutConstraint activateConstraints:@[
         [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [self.glassCard.widthAnchor constraintEqualToConstant:320] // پانییەکی جێگیر و گونجاو
+        [self.glassCard.widthAnchor constraintEqualToConstant:320]
     ]];
 
-    // ڕیزکردنی سەرەکی
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
     mainStack.spacing = 20;
@@ -55,7 +54,7 @@
         [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
 
-    // --- هێدەر (لۆگۆ و ناو بە تەنیشت یەکترەوە) ---
+    // --- هێدەر ---
     UIStackView *headerStack = [[UIStackView alloc] init];
     headerStack.axis = UILayoutConstraintAxisHorizontal;
     headerStack.spacing = 15;
@@ -76,10 +75,18 @@
         [logoView.heightAnchor constraintEqualToConstant:44]
     ]];
 
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/a.png"]];
-        if (data) dispatch_async(dispatch_get_main_queue(), ^{ logoView.image = [UIImage imageWithData:data]; });
-    });
+    // هێنانی لۆگۆی خۆت بە سیستەمی کاش
+    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:logoView];
+
+    // === ئەنیمەیشنی (لێدانی دڵ) تەنها بۆ لۆگۆکەت ===
+    CABasicAnimation *pulseAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    pulseAnimation.duration = 1.2; // خێرایی گەورەبوونەکە
+    pulseAnimation.toValue = @1.08; // کەمێک گەورە دەبێت
+    pulseAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    pulseAnimation.autoreverses = YES; // ئۆتۆماتیکی دەگەڕێتەوە باری خۆی
+    pulseAnimation.repeatCount = HUGE_VALF; // بۆ هەمیشە و بێ وەستان دووبارە دەبێتەوە
+    [logoView.layer addAnimation:pulseAnimation forKey:@"pulse"];
+    // ===============================================
 
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
@@ -98,13 +105,12 @@
     subLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.5];
     [titleStack addArrangedSubview:subLabel];
 
-    // هێڵی جیاکەرەوە
     UIView *divider = [[UIView alloc] init];
     divider.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1];
     [divider.heightAnchor constraintEqualToConstant:1].active = YES;
     [mainStack addArrangedSubview:divider];
 
-    // --- دوگمەی سۆشیاڵ میدیاکان (٣ چوارگۆشەی تەنیشت یەکتر) ---
+    // --- دوگمەی سۆشیاڵ میدیاکان ---
     UIStackView *socialStack = [[UIStackView alloc] init];
     socialStack.axis = UILayoutConstraintAxisHorizontal;
     socialStack.spacing = 15;
@@ -119,7 +125,7 @@
     [socialStack addArrangedSubview:ttBtn];
     [socialStack addArrangedSubview:webBtn];
 
-    [socialStack.heightAnchor constraintEqualToConstant:55].active = YES; // بەرزی دوگمەکان
+    [socialStack.heightAnchor constraintEqualToConstant:55].active = YES;
 
     // --- دوگمەی Start Game ---
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -136,13 +142,31 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    // ئەنیمەیشنی دەرکەوتنی سادە بۆ ڕێگریکردن لە ئێرۆر
     [UIView animateWithDuration:0.4 animations:^{
         self.glassCard.alpha = 1.0;
     }];
 }
 
-// دروستکردنی دوگمەی چوارگۆشەیی مۆدێرن بە لۆگۆوە
+// سیستەمی خەزنکردن و خێراکردنی لۆگۆکان
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView {
+    NSString *cachePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[urlStr lastPathComponent]];
+    NSData *cachedData = [NSData dataWithContentsOfFile:cachePath];
+    
+    if (cachedData) {
+        imgView.image = [UIImage imageWithData:cachedData];
+    } else {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlStr]];
+            if (data) {
+                [data writeToFile:cachePath atomically:YES];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    imgView.image = [UIImage imageWithData:data];
+                });
+            }
+        });
+    }
+}
+
 - (UIButton *)createSquareSocialButton:(NSString *)url action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.06];
@@ -163,10 +187,7 @@
         [icon.heightAnchor constraintEqualToConstant:28]
     ]];
 
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        NSData *d = [NSData dataWithContentsOfURL:[NSURL URLWithString:url]];
-        if (d) dispatch_async(dispatch_get_main_queue(), ^{ icon.image = [UIImage imageWithData:d]; });
-    });
+    [self loadAndCacheImage:url forImageView:icon];
 
     return btn;
 }
