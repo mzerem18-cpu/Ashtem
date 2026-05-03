@@ -31,10 +31,8 @@
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.1].CGColor;
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0;
+    self.glassCard.alpha = 0; // ئامادەکردن بۆ ئەنیمەیشنی دەرکەوتن
     
-    // ئەنیمەیشنی گەورەبوون
-    self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
     [self.view addSubview:self.glassCard];
     
     [NSLayoutConstraint activateConstraints:@[
@@ -138,10 +136,10 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [UIView animateWithDuration:0.4 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    // ئەنیمەیشنی دەرکەوتنی سادە بۆ ڕێگریکردن لە ئێرۆر
+    [UIView animateWithDuration:0.4 animations:^{
         self.glassCard.alpha = 1.0;
-        self.glassCard.transform = CGAffineTransformIdentity;
-    } completion:nil];
+    }];
 }
 
 // دروستکردنی دوگمەی چوارگۆشەیی مۆدێرن بە لۆگۆوە
@@ -185,7 +183,6 @@
 - (void)closeTapped {
     [self playHaptic];
     [UIView animateWithDuration:0.3 animations:^{
-        self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
         self.view.alpha = 0;
     } completion:^(BOOL finished) {
         [self dismissViewControllerAnimated:NO completion:nil];
