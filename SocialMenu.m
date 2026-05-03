@@ -1,6 +1,6 @@
 #import <UIKit/UIKit.h>
 
-// --- کۆدە ئۆرجیناڵەکەی خۆت (گونجاو بۆ درێژی بەرنامە و پانی یارییەکان) ---
+// --- دیزاینە ئۆرجیناڵەکەی خۆت بە چارەسەری یارییەکان (Landscape) ---
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
 - (void)openTelegram;
@@ -15,67 +15,84 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // شاشەکە بەتەواوی بێ سنوور دەکەین
+    // ١. شاشەکە بەتەواوی بێ سنوور دەکەین
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی تەڵخی مۆدێرن بۆ هەموو شاشەکە
+    // ٢. باکگراوندی تەڵخی مۆدێرن بۆ هەموو شاشەکە
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
     blurView.frame = self.view.bounds;
     blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:blurView];
 
-    // دروستکردنی کارتی شوشەیی
+    // ٣. دروستکردنی کارتی شوشەیی (Glass Card)
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.12];
     self.glassCard.layer.cornerRadius = 35;
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.2].CGColor;
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0;
+    self.glassCard.alpha = 0; // ئامادەکردن بۆ ئەنیمەیشن
     
     [self.view addSubview:self.glassCard];
     
-    // --- چارەسەری یاری و بەرنامە بە کۆدێکی زۆر سادە ---
-    NSLayoutConstraint *widthCon = [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.88];
-    widthCon.priority = 750; // ڕێگە دەدات بە مەرجەکەی خوارەوە کار بکات لە یارییەکاندا
+    // --- چارەسەری شاشەی یارییەکان لێرەدایە ---
+    NSLayoutConstraint *widthConstraint = [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.88];
+    widthConstraint.priority = 750;
     
     [NSLayoutConstraint activateConstraints:@[
         [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        widthCon,
-        // ئەم دێڕە ڕێگری دەکات کارتەکە لەناو یارییەکاندا لە ٣٨٠ پیکسەڵ پانتر بێتەوە
-        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:380]
+        widthConstraint,
+        // ڕێگری دەکات کارتەکە لەناو یارییەکاندا زۆر پان بێتەوە
+        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:380],
+        // گرنگترین دێڕ: ڕێگری دەکات کارتەکە لە شاشەکە درێژتر بێت، ئەمەش وا دەکات دوگمەکان ون نەبن
+        [self.glassCard.heightAnchor constraintLessThanOrEqualToAnchor:self.view.heightAnchor constant:-60]
     ]];
 
-    UIStackView *mainStack = [[UIStackView alloc] init];
-    mainStack.axis = UILayoutConstraintAxisVertical;
-    mainStack.spacing = 15; // بۆشاییم کەمێک کەمکردەوە بۆ ئەوەی لەناو یارییەکان نەبڕێت
-    mainStack.alignment = UIStackViewAlignmentCenter;
-    mainStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.glassCard addSubview:mainStack];
+    // ٤. زیادکردنی ScrollView بۆ ناو کارتەکە بۆ ئەوەی نەبڕێت
+    UIScrollView *scrollView = [[UIScrollView alloc] init];
+    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+    scrollView.showsVerticalScrollIndicator = NO;
+    [self.glassCard addSubview:scrollView];
 
     [NSLayoutConstraint activateConstraints:@[
-        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:20],
-        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-20],
-        [mainStack.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor constant:20],
-        [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-20]
+        [scrollView.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor],
+        [scrollView.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor],
+        [scrollView.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor],
+        [scrollView.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor]
+    ]];
+
+    // ٥. StackView سەرەکی لەناو ScrollView
+    UIStackView *mainStack = [[UIStackView alloc] init];
+    mainStack.axis = UILayoutConstraintAxisVertical;
+    mainStack.spacing = 25;
+    mainStack.alignment = UIStackViewAlignmentCenter;
+    mainStack.translatesAutoresizingMaskIntoConstraints = NO;
+    [scrollView addSubview:mainStack];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [mainStack.topAnchor constraintEqualToAnchor:scrollView.topAnchor constant:30],
+        [mainStack.bottomAnchor constraintEqualToAnchor:scrollView.bottomAnchor constant:-30],
+        [mainStack.leadingAnchor constraintEqualToAnchor:scrollView.leadingAnchor constant:20],
+        [mainStack.trailingAnchor constraintEqualToAnchor:scrollView.trailingAnchor constant:-20],
+        [mainStack.widthAnchor constraintEqualToAnchor:scrollView.widthAnchor constant:-40]
     ]];
 
     // --- لۆگۆی کەسی ---
     UIImageView *imageView = [[UIImageView alloc] init];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
-    imageView.layer.cornerRadius = 32; 
+    imageView.layer.cornerRadius = 40; 
     imageView.clipsToBounds = YES;
     imageView.layer.borderWidth = 2.0;
     imageView.layer.borderColor = [UIColor whiteColor].CGColor;
     [mainStack addArrangedSubview:imageView];
 
     [NSLayoutConstraint activateConstraints:@[
-        [imageView.widthAnchor constraintEqualToConstant:65],
-        [imageView.heightAnchor constraintEqualToConstant:65]
+        [imageView.widthAnchor constraintEqualToConstant:80],
+        [imageView.heightAnchor constraintEqualToConstant:80]
     ]];
 
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -129,8 +146,8 @@
     [mainStack addArrangedSubview:closeBtn];
 
     [NSLayoutConstraint activateConstraints:@[
-        [closeBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor multiplier:0.9],
-        [closeBtn.heightAnchor constraintEqualToConstant:50]
+        [closeBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
+        [closeBtn.heightAnchor constraintEqualToConstant:55]
     ]];
 }
 
@@ -146,7 +163,6 @@
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1];
     btn.layer.cornerRadius = 18;
     
-    // ڕێکخستنی ڕەنگی تێکست
     UIColor *textColor = [color isEqual:[UIColor whiteColor]] ? [UIColor blackColor] : color;
     [btn setTitle:title forState:UIControlStateNormal];
     [btn setTitleColor:textColor forState:UIControlStateNormal];
@@ -155,7 +171,7 @@
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     
     [NSLayoutConstraint activateConstraints:@[
-        [btn.heightAnchor constraintEqualToConstant:45]
+        [btn.heightAnchor constraintEqualToConstant:50]
     ]];
     
     return btn;
@@ -172,16 +188,14 @@
 
 - (void)closeTapped {
     [self playHaptic];
-    [UIView animateWithDuration:0.3 animations:^{ self.view.alpha = 0; } completion:^(BOOL finished) {
-        [self dismissViewControllerAnimated:NO completion:nil];
-    }];
+    [self dismissViewControllerAnimated:NO completion:nil];
 }
 
 @end
 
 // --- بەشی ئینجێکتکردن ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -193,9 +207,7 @@ __attribute__((constructor)) static void showCustomWelcomeScreen() {
                     UIViewController *topController = keyWindow.rootViewController;
                     while (topController.presentedViewController) { topController = topController.presentedViewController; }
                     AshteWelcomeViewController *welcomeVC = [[AshteWelcomeViewController alloc] init];
-                    
                     welcomeVC.modalPresentationStyle = UIModalPresentationOverFullScreen;
-                    
                     [topController presentViewController:welcomeVC animated:NO completion:nil];
                 }
             });
