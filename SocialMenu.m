@@ -1,6 +1,6 @@
 #import <UIKit/UIKit.h>
 
-// --- دیزاینی زۆر پڕۆفیشناڵ و مۆدێرن بە لۆگۆی ڕەسەنەوە ---
+// --- دیزاینی پڕۆفیشناڵ بە گونجان بۆ بەرنامە (درێژی) و یاری (پانی) ---
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
 - (void)openTelegram;
@@ -28,7 +28,7 @@
 
     // دروستکردنی کارتی سەرەکی بە ستایلی (Premium Glass)
     self.glassCard = [[UIView alloc] init];
-    self.glassCard.backgroundColor = [UIColor colorWithWhite:0.05 alpha:0.65]; // ڕەشییەکی زۆر پڕۆفیشناڵ
+    self.glassCard.backgroundColor = [UIColor colorWithWhite:0.05 alpha:0.65];
     self.glassCard.layer.cornerRadius = 35;
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.1].CGColor;
@@ -37,25 +37,49 @@
     
     [self.view addSubview:self.glassCard];
 
+    // --- لێرەدایە چارەسەری کێشەی (بەرنامە و یاری) ---
+    NSLayoutConstraint *widthConstraint = [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.90];
+    widthConstraint.priority = UILayoutPriorityDefaultHigh; // ڕێگە دەدات ئۆتۆماتیکی بێت
+    
     [NSLayoutConstraint activateConstraints:@[
         [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.90]
+        
+        // لە بەرنامەکان ٩٠٪ی شاشەیە، بەڵام لە یارییەکان ڕێگری دەکات زۆر پان بێت
+        widthConstraint,
+        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:420],
+        
+        // لە یارییەکان ڕێگری دەکات کارتەکە لە شاشەکە دەربچێت
+        [self.glassCard.heightAnchor constraintLessThanOrEqualToAnchor:self.view.heightAnchor multiplier:0.85]
     ]];
 
-    // ڕیزکردنی ناوەڕۆک
+    // --- دانانی سکڕۆڵ بۆ ئەوەی لە یارییەکاندا نەبڕێت ---
+    UIScrollView *scroll = [[UIScrollView alloc] init];
+    scroll.translatesAutoresizingMaskIntoConstraints = NO;
+    scroll.showsVerticalScrollIndicator = NO;
+    [self.glassCard addSubview:scroll];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [scroll.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor],
+        [scroll.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor],
+        [scroll.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor],
+        [scroll.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor]
+    ]];
+
+    // ڕیزکردنی ناوەڕۆک لەناو سکڕۆڵەکەدا
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
     mainStack.spacing = 25;
     mainStack.alignment = UIStackViewAlignmentFill;
     mainStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.glassCard addSubview:mainStack];
+    [scroll addSubview:mainStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:35],
-        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-35],
-        [mainStack.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor constant:20],
-        [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-20]
+        [mainStack.topAnchor constraintEqualToAnchor:scroll.topAnchor constant:30],
+        [mainStack.bottomAnchor constraintEqualToAnchor:scroll.bottomAnchor constant:-30],
+        [mainStack.leadingAnchor constraintEqualToAnchor:scroll.leadingAnchor constant:20],
+        [mainStack.trailingAnchor constraintEqualToAnchor:scroll.trailingAnchor constant:-20],
+        [mainStack.widthAnchor constraintEqualToAnchor:scroll.widthAnchor constant:-40] // بۆشایی تەنیشتەکان
     ]];
 
     // --- بەشی هێدەر (لۆگۆ و تایتڵ) ---
@@ -79,7 +103,6 @@
         [imageView.heightAnchor constraintEqualToConstant:90]
     ]];
 
-    // هێنانی لۆگۆی پڕۆژەکەت
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/a.png"]];
         if (data) {
@@ -99,24 +122,15 @@
     subtitleLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.5];
     [headerStack addArrangedSubview:subtitleLabel];
 
-    // --- بەشی دوگمەکان (سۆشیاڵ میدیا بە لۆگۆی ڕەسەنەوە) ---
+    // --- بەشی دوگمەکان (لۆگۆی ڕەسەن) ---
     UIStackView *buttonsStack = [[UIStackView alloc] init];
     buttonsStack.axis = UILayoutConstraintAxisVertical;
     buttonsStack.spacing = 12;
     [mainStack addArrangedSubview:buttonsStack];
 
-    // هێنانی لۆگۆ ڕەسەنەکان بە کوالێتی بەرز لە ئینتەرنێتەوە
-    UIView *tgBtn = [self createPremiumSocialButton:@"Official Telegram" 
-                                            iconURL:@"https://img.icons8.com/color/512/telegram-app.png" 
-                                             action:@selector(openTelegram)];
-                                             
-    UIView *ttBtn = [self createPremiumSocialButton:@"Follow on TikTok" 
-                                            iconURL:@"https://img.icons8.com/color/512/tiktok.png" 
-                                             action:@selector(openTikTok)];
-                                             
-    UIView *webBtn = [self createPremiumSocialButton:@"Visit Website" 
-                                             iconURL:@"https://img.icons8.com/color/512/safari.png" 
-                                              action:@selector(openWebsite)];
+    UIView *tgBtn = [self createPremiumSocialButton:@"Official Telegram" iconURL:@"https://img.icons8.com/color/512/telegram-app.png" action:@selector(openTelegram)];
+    UIView *ttBtn = [self createPremiumSocialButton:@"Follow on TikTok" iconURL:@"https://img.icons8.com/color/512/tiktok.png" action:@selector(openTikTok)];
+    UIView *webBtn = [self createPremiumSocialButton:@"Visit Website" iconURL:@"https://img.icons8.com/color/512/safari.png" action:@selector(openWebsite)];
     
     [buttonsStack addArrangedSubview:tgBtn];
     [buttonsStack addArrangedSubview:ttBtn];
@@ -161,7 +175,6 @@
     iconView.translatesAutoresizingMaskIntoConstraints = NO;
     [btn addSubview:iconView];
 
-    // دابەزاندنی لۆگۆکە
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         NSData *d = [NSData dataWithContentsOfURL:[NSURL URLWithString:url]];
         if(d) {
@@ -179,13 +192,12 @@
     lbl.translatesAutoresizingMaskIntoConstraints = NO;
     [btn addSubview:lbl];
 
-    // تیری لای ڕاست (شێوەی ئەپڵ)
+    // تیری لای ڕاست
     UIImageView *chevron = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"chevron.right"]];
     chevron.tintColor = [UIColor colorWithWhite:1.0 alpha:0.3];
     chevron.translatesAutoresizingMaskIntoConstraints = NO;
     [btn addSubview:chevron];
 
-    // ڕێکخستنی شوێنی ئایکۆن و تێکستەکان
     [NSLayoutConstraint activateConstraints:@[
         [iconView.leadingAnchor constraintEqualToAnchor:btn.leadingAnchor constant:18],
         [iconView.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
