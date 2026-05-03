@@ -1,8 +1,8 @@
 #import <UIKit/UIKit.h>
 
-// --- دیزاینی مۆدێرن و پڕۆفیشناڵی نوێ (Bottom Sheet Style) ---
+// --- دیزاینی زۆر مۆدێرن و پڕۆفیشناڵی AshteMobile بە مەرجی Full Screen ---
 @interface AshteWelcomeViewController : UIViewController
-@property (nonatomic, strong) UIView *bottomCard;
+@property (nonatomic, strong) UIView *glassCard;
 @property (nonatomic, strong) UIVisualEffectView *blurView;
 - (void)openTelegram;
 - (void)openTikTok;
@@ -16,11 +16,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    // شاشەکە بێ سنوور
+    // شاشەکە بەتەواوی بێ سنوور
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی تەڵخی مۆدێرن (Blur)
+    // باکگراوندی تەڵخی مۆدێرن بۆ هەموو شاشەکە
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     self.blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
     self.blurView.frame = self.view.bounds;
@@ -28,158 +28,166 @@
     self.blurView.alpha = 0; // بۆ ئەنیمەیشنی سەرەتا
     [self.view addSubview:self.blurView];
 
-    // --- کارتی سەرەکی لە خوارەوە (Modern Bottom Sheet) ---
-    self.bottomCard = [[UIView alloc] init];
-    self.bottomCard.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.95]; // ڕەنگێکی ڕەشی زۆر مۆدێرن
-    self.bottomCard.layer.cornerRadius = 35;
-    self.bottomCard.layer.borderWidth = 1.0;
-    self.bottomCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.1].CGColor;
+    // دروستکردنی کارتی شوشەیی (Glass Card)
+    self.glassCard = [[UIView alloc] init];
+    self.glassCard.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.12];
+    self.glassCard.layer.cornerRadius = 38; // خڕکردنی زیاتر بۆ جوانی
+    self.glassCard.layer.borderWidth = 1.5; // چوارچێوەیەکی کەمێک ئەستوورتر
+    self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.25].CGColor;
     
-    // سێبەری پڕۆفیشناڵ (Shadow)
-    self.bottomCard.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.bottomCard.layer.shadowOffset = CGSizeMake(0, 15);
-    self.bottomCard.layer.shadowRadius = 25;
-    self.bottomCard.layer.shadowOpacity = 0.6;
+    // سێبەری درەوشاوە (Glow Effect)ی زۆر پڕۆفیشناڵ
+    self.glassCard.layer.shadowColor = [UIColor colorWithRed:0.0 green:0.5 blue:1.0 alpha:1.0].CGColor;
+    self.glassCard.layer.shadowOffset = CGSizeMake(0, 10);
+    self.glassCard.layer.shadowRadius = 30;
+    self.glassCard.layer.shadowOpacity = 0.4;
     
-    self.bottomCard.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.view addSubview:self.bottomCard];
-
-    // جێگیرکردنی کارتەکە لە خوارەوەی شاشەکە
+    self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
+    self.glassCard.alpha = 0;
+    
+    // ئامادەکردن بۆ ئەنیمەیشنی (Spring)
+    self.glassCard.transform = CGAffineTransformMakeScale(0.8, 0.8);
+    
+    [self.view addSubview:self.glassCard];
+    
     [NSLayoutConstraint activateConstraints:@[
-        [self.bottomCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [self.bottomCard.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor constant:-40],
-        [self.bottomCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.92]
+        [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
+        [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.88]
     ]];
 
-    // ڕیزکردنی ناوەڕۆک (StackView)
-    UIStackView *contentStack = [[UIStackView alloc] init];
-    contentStack.axis = UILayoutConstraintAxisVertical;
-    contentStack.spacing = 15;
-    contentStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.bottomCard addSubview:contentStack];
+    UIStackView *mainStack = [[UIStackView alloc] init];
+    mainStack.axis = UILayoutConstraintAxisVertical;
+    mainStack.spacing = 28; // بۆشایی زیاتر بۆ هەناسەدان
+    mainStack.alignment = UIStackViewAlignmentCenter;
+    mainStack.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.glassCard addSubview:mainStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [contentStack.topAnchor constraintEqualToAnchor:self.bottomCard.topAnchor constant:30],
-        [contentStack.bottomAnchor constraintEqualToAnchor:self.bottomCard.bottomAnchor constant:-30],
-        [contentStack.leadingAnchor constraintEqualToAnchor:self.bottomCard.leadingAnchor constant:25],
-        [contentStack.trailingAnchor constraintEqualToAnchor:self.bottomCard.trailingAnchor constant:-25]
+        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:35],
+        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-35],
+        [mainStack.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor constant:20],
+        [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-20]
     ]];
 
-    // --- هێدەری سەرەوە (لۆگۆ و تایتڵ بەیەکەوە) ---
-    UIStackView *headerStack = [[UIStackView alloc] init];
-    headerStack.axis = UILayoutConstraintAxisHorizontal;
-    headerStack.spacing = 15;
-    headerStack.alignment = UIStackViewAlignmentCenter;
-    [contentStack addArrangedSubview:headerStack];
+    // --- لۆگۆی کەسی بە ستایلی نوێ ---
+    UIImageView *imageView = [[UIImageView alloc] init];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    imageView.translatesAutoresizingMaskIntoConstraints = NO;
+    imageView.layer.cornerRadius = 45; // گەورەتر و خڕتر
+    imageView.clipsToBounds = YES;
+    imageView.layer.borderWidth = 2.5;
+    imageView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
+    [mainStack addArrangedSubview:imageView];
 
-    // لۆگۆ
-    UIImageView *logoView = [[UIImageView alloc] init];
-    logoView.contentMode = UIViewContentModeScaleAspectFill;
-    logoView.layer.cornerRadius = 25; // خڕکردنی لۆگۆ
-    logoView.clipsToBounds = YES;
-    logoView.layer.borderWidth = 1.5;
-    logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.5].CGColor;
-    logoView.translatesAutoresizingMaskIntoConstraints = NO;
     [NSLayoutConstraint activateConstraints:@[
-        [logoView.widthAnchor constraintEqualToConstant:60],
-        [logoView.heightAnchor constraintEqualToConstant:60]
+        [imageView.widthAnchor constraintEqualToConstant:90],
+        [imageView.heightAnchor constraintEqualToConstant:90]
     ]];
-    
+
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/a.png"]];
         if (data) {
             dispatch_async(dispatch_get_main_queue(), ^{
-                logoView.image = [UIImage imageWithData:data];
+                imageView.image = [UIImage imageWithData:data];
             });
         }
     });
-    [headerStack addArrangedSubview:logoView];
 
-    // تایتڵ و سەبتایتڵ
+    // --- تایتڵ و سەبتایتڵ ---
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
-    titleStack.spacing = 2;
-    
+    titleStack.spacing = 4;
+    titleStack.alignment = UIStackViewAlignmentCenter;
+    [mainStack addArrangedSubview:titleStack];
+
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = @"AshteMobile";
-    titleLabel.font = [UIFont systemFontOfSize:26 weight:UIFontWeightHeavy];
+    titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightBlack]; // فۆنتێکی ئەستوورتر
     titleLabel.textColor = [UIColor whiteColor];
+    [titleStack addArrangedSubview:titleLabel];
     
     UILabel *subTitleLabel = [[UILabel alloc] init];
-    subTitleLabel.text = @"Premium Mod Menu";
+    subTitleLabel.text = @"Premium Gaming Experience";
     subTitleLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
-    subTitleLabel.textColor = [UIColor colorWithRed:0.0 green:0.6 blue:1.0 alpha:1.0]; // ڕەنگی شینی مۆدێرن
-    
-    [titleStack addArrangedSubview:titleLabel];
+    subTitleLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.6];
     [titleStack addArrangedSubview:subTitleLabel];
-    [headerStack addArrangedSubview:titleStack];
 
-    // هێڵی جیاکەرەوە
-    UIView *divider = [[UIView alloc] init];
-    divider.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1];
-    [divider.heightAnchor constraintEqualToConstant:1].active = YES;
-    [contentStack addArrangedSubview:divider];
+    // --- سۆشیاڵ میدیا ---
+    UIStackView *rowStack = [[UIStackView alloc] init];
+    rowStack.axis = UILayoutConstraintAxisHorizontal;
+    rowStack.spacing = 15;
+    rowStack.distribution = UIStackViewDistributionFillEqually;
+    [mainStack addArrangedSubview:rowStack];
 
-    // --- دوگمەکان ---
-    UIButton *tgBtn = [self createModernButton:@"Join Telegram" color:[UIColor colorWithRed:0.0 green:0.55 blue:0.95 alpha:1.0] action:@selector(openTelegram)];
-    UIButton *ttBtn = [self createModernButton:@"Follow on TikTok" color:[UIColor colorWithWhite:0.15 alpha:1.0] action:@selector(openTikTok)];
-    UIButton *webBtn = [self createModernButton:@"Official Website" color:[UIColor colorWithRed:0.9 green:0.15 blue:0.35 alpha:1.0] action:@selector(openWebsite)];
+    UIButton *tgBtn = [self createModernButton:@"Telegram" color:[UIColor colorWithRed:0.0 green:0.55 blue:1.0 alpha:1.0] action:@selector(openTelegram)];
+    UIButton *ttBtn = [self createModernButton:@"TikTok" color:[UIColor colorWithWhite:1.0 alpha:0.2] action:@selector(openTikTok)];
     
-    [contentStack addArrangedSubview:tgBtn];
-    [contentStack addArrangedSubview:ttBtn];
-    [contentStack addArrangedSubview:webBtn];
+    [rowStack addArrangedSubview:tgBtn];
+    [rowStack addArrangedSubview:ttBtn];
 
-    // بۆشایی پێش دوگمەی کۆتایی
-    UIView *spacer = [[UIView alloc] init];
-    [spacer.heightAnchor constraintEqualToConstant:5].active = YES;
-    [contentStack addArrangedSubview:spacer];
+    [NSLayoutConstraint activateConstraints:@[
+        [rowStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
+    ]];
 
-    // --- دوگمەی سەرەکی بۆ داپۆشین (Start Game) ---
-    UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    startBtn.backgroundColor = [UIColor whiteColor];
-    startBtn.layer.cornerRadius = 20;
-    [startBtn setTitle:@"Start Game" forState:UIControlStateNormal];
-    [startBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal]; // ڕەنگی پێچەوانە بۆ جیاوازی
-    startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightBold];
-    [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
-    [startBtn.heightAnchor constraintEqualToConstant:55].active = YES;
+    UIButton *webBtn = [self createModernButton:@"Visit Official Website" color:[UIColor colorWithRed:0.95 green:0.15 blue:0.4 alpha:1.0] action:@selector(openWebsite)];
+    [mainStack addArrangedSubview:webBtn];
     
-    // سێبەری بچووک بۆ دوگمەی خوارەوە
-    startBtn.layer.shadowColor = [UIColor whiteColor].CGColor;
-    startBtn.layer.shadowOffset = CGSizeMake(0, 0);
-    startBtn.layer.shadowRadius = 10;
-    startBtn.layer.shadowOpacity = 0.3;
-    
-    [contentStack addArrangedSubview:startBtn];
+    [NSLayoutConstraint activateConstraints:@[
+        [webBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
+    ]];
 
-    // ئامادەکردنی کارتەکە بۆ ئەنیمەیشن (لە خوارەوە دەست پێدەکات)
-    self.bottomCard.transform = CGAffineTransformMakeTranslation(0, 700);
+    // --- دوگمەی Get Started (ستایلی داپۆشین) ---
+    UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    closeBtn.backgroundColor = [UIColor whiteColor];
+    closeBtn.layer.cornerRadius = 22;
+    [closeBtn setTitle:@"Let's Go! ➔" forState:UIControlStateNormal];
+    [closeBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal]; // ڕەنگی پێچەوانە
+    closeBtn.titleLabel.font = [UIFont systemFontOfSize:19 weight:UIFontWeightHeavy];
+    
+    // سێبەری دوگمەکە
+    closeBtn.layer.shadowColor = [UIColor whiteColor].CGColor;
+    closeBtn.layer.shadowOffset = CGSizeMake(0, 5);
+    closeBtn.layer.shadowRadius = 15;
+    closeBtn.layer.shadowOpacity = 0.5;
+    
+    [closeBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    [mainStack addArrangedSubview:closeBtn];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [closeBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor multiplier:0.95],
+        [closeBtn.heightAnchor constraintEqualToConstant:58]
+    ]];
 }
 
-// ئەنیمەیشنی زۆر جوانی Spring
+// ئەنیمەیشنی هاتنە ژوورەوەی زۆر پڕۆفیشناڵ (Spring Animation)
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    // هێنانی باکگراوندەکە
     [UIView animateWithDuration:0.3 animations:^{
         self.blurView.alpha = 1.0;
     }];
     
-    // هێنانە سەرەوەی کارتەکە
-    [UIView animateWithDuration:0.6 delay:0.1 usingSpringWithDamping:0.75 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.bottomCard.transform = CGAffineTransformIdentity;
+    [UIView animateWithDuration:0.6 delay:0.1 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.glassCard.alpha = 1.0;
+        self.glassCard.transform = CGAffineTransformIdentity;
     } completion:nil];
 }
 
 - (UIButton *)createModernButton:(NSString *)title color:(UIColor *)color action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
     btn.backgroundColor = color;
-    btn.layer.cornerRadius = 16;
+    btn.layer.cornerRadius = 18;
+    
+    // ئەگەر دوگمەی تیکتۆک بوو با تێکستەکەی سپی بێت، ئەگەرنا بە پێی ڕەنگەکە
+    UIColor *textColor = [color isEqual:[UIColor colorWithWhite:1.0 alpha:0.2]] ? [UIColor whiteColor] : [UIColor whiteColor];
+    
     [btn setTitle:title forState:UIControlStateNormal];
-    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    btn.titleLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightSemibold];
+    [btn setTitleColor:textColor forState:UIControlStateNormal];
+    btn.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightBold];
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
-    [btn.heightAnchor constraintEqualToConstant:50].active = YES;
+    
+    [btn.heightAnchor constraintEqualToConstant:52].active = YES;
+    
     return btn;
 }
 
@@ -192,11 +200,12 @@
 - (void)openTikTok { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
 - (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
 
+// ئەنیمەیشنی داخستن
 - (void)closeTapped {
     [self playHaptic];
-    // ئەنیمەیشنی داخستن
-    [UIView animateWithDuration:0.3 animations:^{
-        self.bottomCard.transform = CGAffineTransformMakeTranslation(0, 700);
+    [UIView animateWithDuration:0.4 animations:^{
+        self.glassCard.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        self.glassCard.alpha = 0;
         self.blurView.alpha = 0;
     } completion:^(BOOL finished) {
         [self dismissViewControllerAnimated:NO completion:nil];
