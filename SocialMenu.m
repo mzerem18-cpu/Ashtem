@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import <QuartzCore/QuartzCore.h> // زیادکراوە بۆ چارەسەری ئێرۆری سێبەر
 
 // --- دیزاینی زۆر مۆدێرن و پڕۆفیشناڵی AshteMobile بە مەرجی Full Screen ---
 @interface AshteWelcomeViewController : UIViewController
@@ -31,8 +32,8 @@
     // دروستکردنی کارتی شوشەیی (Glass Card)
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.12];
-    self.glassCard.layer.cornerRadius = 38; // خڕکردنی زیاتر بۆ جوانی
-    self.glassCard.layer.borderWidth = 1.5; // چوارچێوەیەکی کەمێک ئەستوورتر
+    self.glassCard.layer.cornerRadius = 38; 
+    self.glassCard.layer.borderWidth = 1.5; 
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.25].CGColor;
     
     // سێبەری درەوشاوە (Glow Effect)ی زۆر پڕۆفیشناڵ
@@ -57,7 +58,7 @@
 
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
-    mainStack.spacing = 28; // بۆشایی زیاتر بۆ هەناسەدان
+    mainStack.spacing = 28; 
     mainStack.alignment = UIStackViewAlignmentCenter;
     mainStack.translatesAutoresizingMaskIntoConstraints = NO;
     [self.glassCard addSubview:mainStack];
@@ -73,7 +74,7 @@
     UIImageView *imageView = [[UIImageView alloc] init];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
-    imageView.layer.cornerRadius = 45; // گەورەتر و خڕتر
+    imageView.layer.cornerRadius = 45; 
     imageView.clipsToBounds = YES;
     imageView.layer.borderWidth = 2.5;
     imageView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
@@ -102,7 +103,7 @@
 
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = @"AshteMobile";
-    titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightBlack]; // فۆنتێکی ئەستوورتر
+    titleLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightBlack]; 
     titleLabel.textColor = [UIColor whiteColor];
     [titleStack addArrangedSubview:titleLabel];
     
@@ -141,7 +142,7 @@
     closeBtn.backgroundColor = [UIColor whiteColor];
     closeBtn.layer.cornerRadius = 22;
     [closeBtn setTitle:@"Let's Go! ➔" forState:UIControlStateNormal];
-    [closeBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal]; // ڕەنگی پێچەوانە
+    [closeBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal]; 
     closeBtn.titleLabel.font = [UIFont systemFontOfSize:19 weight:UIFontWeightHeavy];
     
     // سێبەری دوگمەکە
@@ -178,11 +179,8 @@
     btn.backgroundColor = color;
     btn.layer.cornerRadius = 18;
     
-    // ئەگەر دوگمەی تیکتۆک بوو با تێکستەکەی سپی بێت، ئەگەرنا بە پێی ڕەنگەکە
-    UIColor *textColor = [color isEqual:[UIColor colorWithWhite:1.0 alpha:0.2]] ? [UIColor whiteColor] : [UIColor whiteColor];
-    
     [btn setTitle:title forState:UIControlStateNormal];
-    [btn setTitleColor:textColor forState:UIControlStateNormal];
+    [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     btn.titleLabel.font = [UIFont systemFontOfSize:15 weight:UIFontWeightBold];
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     
@@ -216,7 +214,8 @@
 
 // --- بەشی ئینجێکتکردن ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
-    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
+    // تێبینی: وشەی _Nonnull لێرە سڕایەوە بۆ چارەسەری کێشەی گیت‌هاب
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
