@@ -78,7 +78,7 @@
     self.logoView.frame = CGRectMake(2, 2, 44, 44); 
     [logoContainer addSubview:self.logoView];
 
-    [self loadAndCacheImage:@"https://raw.githubusercontent.com/kurd4u1/olist/refs/heads/main/IMG_5006.jpeg" forImageView:self.logoView placeholder:@"person.circle.fill"];
+    [self loadAndCacheImage:@"https://raw.githubusercontent.com/kurd4u1/olist/refs/heads/main/Kurd4U.jpeg" forImageView:self.logoView placeholder:@"person.circle.fill"];
 
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
