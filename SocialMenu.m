@@ -78,7 +78,7 @@
     self.logoView.frame = CGRectMake(2, 2, 44, 44); 
     [logoContainer addSubview:self.logoView];
 
-    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"person.circle.fill"];
+    [self loadAndCacheImage:@"https://raw.githubusercontent.com/kurd4u1/olist/refs/heads/main/IMG_5006.jpeg" forImageView:self.logoView placeholder:@"person.circle.fill"];
 
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
@@ -86,7 +86,7 @@
     [headerStack addArrangedSubview:titleStack];
 
     UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.text = @"AshteMobile FREE"; // ناوی پڕۆژەکە نوێ کرایەوە
+    titleLabel.text = @"Kurd4U"; // ناوی پڕۆژەکە نوێ کرایەوە
     titleLabel.font = [UIFont systemFontOfSize:20 weight:UIFontWeightBold];
     titleLabel.textColor = [UIColor whiteColor];
     [titleStack addArrangedSubview:titleLabel];
@@ -207,12 +207,12 @@
 }
 
 // لینکی تێلیگرامی یەکەم
-- (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
+- (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4uapk"] options:@{} completionHandler:nil]; }
 
 // لینکی تێلیگرامی دووەم (دەتوانیت لێرەدا بیگۆڕیت بۆ گرووپ یان هەر لینکێکی تر)
-- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
+- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4uapk"] options:@{} completionHandler:nil]; }
 
-- (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
+- (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://kurd4u.com"] options:@{} completionHandler:nil]; }
 
 - (void)closeTapped {
     [self playHaptic];
