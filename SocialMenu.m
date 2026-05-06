@@ -4,7 +4,7 @@
 @property (nonatomic, strong) UIView *glassCard;
 @property (nonatomic, strong) UIImageView *logoView; 
 - (void)openTelegram;
-- (void)openTikTok;
+- (void)openSecondTelegram; // تیکتۆک گۆڕدرا بۆ تێلیگرامی دووەم
 - (void)openWebsite;
 - (void)closeTapped;
 - (void)playHaptic;
@@ -78,7 +78,6 @@
     self.logoView.frame = CGRectMake(2, 2, 44, 44); 
     [logoContainer addSubview:self.logoView];
 
-    // هێنانی لۆگۆی خۆت بە سیستەمی هەمیشەیی و خێرا
     [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"person.circle.fill"];
 
     UIStackView *titleStack = [[UIStackView alloc] init];
@@ -87,7 +86,7 @@
     [headerStack addArrangedSubview:titleStack];
 
     UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.text = @"AshteMobile";
+    titleLabel.text = @"AshteMobile FREE"; // ناوی پڕۆژەکە نوێ کرایەوە
     titleLabel.font = [UIFont systemFontOfSize:20 weight:UIFontWeightBold];
     titleLabel.textColor = [UIColor whiteColor];
     [titleStack addArrangedSubview:titleLabel];
@@ -110,13 +109,13 @@
     socialStack.distribution = UIStackViewDistributionFillEqually;
     [mainStack addArrangedSubview:socialStack];
 
-    // دانانی ئایکۆنی جێگرەوە (Placeholder) بۆ هەر یەکێکیان
-    UIButton *tgBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
-    UIButton *ttBtn = [self createSquareSocialButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
+    // تیکتۆک سڕایەوە و دوو دوگمەی تێلیگرام دانرا
+    UIButton *tgBtn1 = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
+    UIButton *tgBtn2 = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openSecondTelegram)];
     UIButton *webBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
 
-    [socialStack addArrangedSubview:tgBtn];
-    [socialStack addArrangedSubview:ttBtn];
+    [socialStack addArrangedSubview:tgBtn1];
+    [socialStack addArrangedSubview:tgBtn2];
     [socialStack addArrangedSubview:webBtn];
 
     [socialStack.heightAnchor constraintEqualToConstant:55].active = YES;
@@ -141,7 +140,6 @@
         self.glassCard.alpha = 1.0;
     }];
     
-    // ئەنیمەیشنی (لێدانی دڵ)ی لۆگۆکەت وەک خۆی ماوەتەوە
     [UIView animateWithDuration:1.2
                           delay:0.0
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
@@ -151,15 +149,12 @@
                      } completion:nil];
 }
 
-// سیستەمی نوێ: خەزنکردنی هەمیشەیی و بەکارهێنانی Placeholder بە خێرایی سفر چرکە
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
-    // یەکەم جار بە خێرایی باوەڕپێنەکراو ئایکۆنی ئەپڵ خۆی دادەنێت تا شاشەکە بەتاڵ نەبێت
     if (sysName) {
         imgView.image = [UIImage systemImageNamed:sysName];
         imgView.tintColor = [UIColor colorWithWhite:1.0 alpha:0.4];
     }
     
-    // بەکارهێنانی Document Directory کە هەرگیز ناسڕێتەوە
     NSString *docDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     NSString *safeName = [[urlStr componentsSeparatedByString:@"/"] lastObject];
     NSString *cachePath = [docDir stringByAppendingPathComponent:safeName];
@@ -167,14 +162,12 @@
     NSData *cachedData = [NSData dataWithContentsOfFile:cachePath];
     
     if (cachedData) {
-        // ئەگەر پێشتر داونلۆد کرابوو، ڕاستەوخۆ دایدەنێتەوە
         imgView.image = [UIImage imageWithData:cachedData];
     } else {
-        // ئەگەر یەکەم جار بوو، دایبەزێنە و بۆ هەمیشە خەزنی بکە
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
             NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlStr]];
             if (data) {
-                [data writeToFile:cachePath atomically:YES]; // خەزنکردنی هەمیشەیی
+                [data writeToFile:cachePath atomically:YES];
                 dispatch_async(dispatch_get_main_queue(), ^{
                     imgView.image = [UIImage imageWithData:data];
                 });
@@ -213,8 +206,12 @@
     [gen impactOccurred];
 }
 
+// لینکی تێلیگرامی یەکەم
 - (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
-- (void)openTikTok { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
+
+// لینکی تێلیگرامی دووەم (دەتوانیت لێرەدا بیگۆڕیت بۆ گرووپ یان هەر لینکێکی تر)
+- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
+
 - (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil]; }
 
 - (void)closeTapped {
