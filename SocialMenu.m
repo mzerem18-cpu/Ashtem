@@ -211,9 +211,9 @@
 - (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4uapk"] options:@{} completionHandler:nil]; }
 
 // لینکی تێلیگرامی دووەم
-- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://kurd4u.com"] options:@{} completionHandler:nil]; }
+- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4ufeedback"] options:@{} completionHandler:nil]; }
 
-- (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4ufeedback"] options:@{} completionHandler:nil]; }
+- (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://kurd4u.com"] options:@{} completionHandler:nil]; }
 
 - (void)closeTapped {
     [self playHaptic];
