@@ -111,8 +111,9 @@
 
     // تیکتۆک سڕایەوە و دوو دوگمەی تێلیگرام دانرا
     UIButton *tgBtn1 = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
-    UIButton *tgBtn2 = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openSecondTelegram)];
     UIButton *webBtn = [self createSquareSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
+    UIButton *tgBtn2 = [self createSquareSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openSecondTelegram)];
+    
 
     [socialStack addArrangedSubview:tgBtn1];
     [socialStack addArrangedSubview:tgBtn2];
@@ -209,10 +210,10 @@
 // لینکی تێلیگرامی یەکەم
 - (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4uapk"] options:@{} completionHandler:nil]; }
 
-// لینکی تێلیگرامی دووەم (دەتوانیت لێرەدا بیگۆڕیت بۆ گرووپ یان هەر لینکێکی تر)
-- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4uapk"] options:@{} completionHandler:nil]; }
-
 - (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://kurd4u.com"] options:@{} completionHandler:nil]; }
+// لینکی تێلیگرامی دووەم (دەتوانیت لێرەدا بیگۆڕیت بۆ گرووپ یان هەر لینکێکی تر)
+- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/kurd4ufeedback"] options:@{} completionHandler:nil]; }
+
 
 - (void)closeTapped {
     [self playHaptic];
