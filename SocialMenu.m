@@ -3,11 +3,18 @@
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
 @property (nonatomic, strong) UIImageView *logoView; 
-@property (nonatomic, strong) UIView *glowView; // ڕووناکی پشتی لۆگۆکە
+@property (nonatomic, strong) UIView *glowView;
+@property (nonatomic, strong) UIButton *startBtn; // دوگمەی کردنەوە
+
+// گۆڕاوەکان بۆ زانینی ئەوەی ئایا کلیکیان کردووە یان نا
+@property (nonatomic, assign) BOOL clickedTelegram;
+@property (nonatomic, assign) BOOL clickedTikTok;
+
 - (void)openTelegram;
-- (void)openTikTok; // گۆڕدرا بۆ تیکتۆک
+- (void)openTikTok;
 - (void)openWebsite;
 - (void)closeTapped;
+- (void)checkUnlockCondition; // فەنکشنی کردنەوەی قفڵەکە
 - (void)playHaptic;
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
 @end
@@ -17,17 +24,19 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    // لە سەرەتادا هیچ کامیان کلیک نەکراون
+    self.clickedTelegram = NO;
+    self.clickedTikTok = NO;
+    
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی تەڵخی سەرتاسەری یارییەکە
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
     blurView.frame = self.view.bounds;
     blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:blurView];
 
-    // دروستکردنی کارتی سەرەکی
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor clearColor];
     self.glassCard.layer.cornerRadius = 36;
@@ -39,13 +48,11 @@
     
     [self.view addSubview:self.glassCard];
     
-    // دانانی تەڵخی (Blur) بۆ خودی کارتەکە
     UIBlurEffect *cardBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]; 
     UIVisualEffectView *cardBlurView = [[UIVisualEffectView alloc] initWithEffect:cardBlurEffect];
     cardBlurView.translatesAutoresizingMaskIntoConstraints = NO;
     [self.glassCard addSubview:cardBlurView];
 
-    // ڕەنگێکی زۆر کاڵ دەخەینە سەر تەڵخییەکەی کارتەکە بۆ جوانی
     UIView *cardOverlay = [[UIView alloc] init];
     cardOverlay.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.6]; 
     cardOverlay.translatesAutoresizingMaskIntoConstraints = NO;
@@ -91,7 +98,6 @@
         [logoContainer.heightAnchor constraintEqualToConstant:72]
     ]];
 
-    // ڕووناکی پشتی لۆگۆکە (Glow View)
     self.glowView = [[UIView alloc] init];
     self.glowView.backgroundColor = [UIColor systemBlueColor];
     self.glowView.layer.cornerRadius = 36;
@@ -102,7 +108,6 @@
     self.glowView.layer.shadowOpacity = 1.0;
     [logoContainer addSubview:self.glowView];
 
-    // خودی لۆگۆکە
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
     self.logoView.layer.cornerRadius = 32; 
@@ -126,7 +131,6 @@
 
     [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"person.circle.fill"];
 
-    // --- ناو و سەبتایتڵ ---
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
     titleStack.spacing = 6;
@@ -145,7 +149,7 @@
     subLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.6];
     [titleStack addArrangedSubview:subLabel];
 
-    // --- سۆشیاڵ میدیا (بازنەیی مۆدێرن) ---
+    // --- سۆشیاڵ میدیا ---
     UIStackView *dockStack = [[UIStackView alloc] init];
     dockStack.axis = UILayoutConstraintAxisHorizontal;
     dockStack.spacing = 20;
@@ -153,41 +157,38 @@
     dockStack.translatesAutoresizingMaskIntoConstraints = NO;
     [mainStack addArrangedSubview:dockStack];
 
-    // دروستکردنی دوگمەکان (تێلیگرام، وێبسایت، تیکتۆک)
     UIButton *tgBtn = [self createCircleSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
     UIButton *webBtn = [self createCircleSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
     UIButton *ttBtn = [self createCircleSocialButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
 
     [dockStack addArrangedSubview:tgBtn];
     [dockStack addArrangedSubview:webBtn];
-    [dockStack addArrangedSubview:ttBtn]; // تیکتۆک لە کۆتاییدا دانرا
+    [dockStack addArrangedSubview:ttBtn];
 
-    // --- دوگمەی سەرەکی (OPEN) ---
-    UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    startBtn.backgroundColor = [UIColor systemBlueColor];
-    startBtn.layer.cornerRadius = 24; 
-    [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
-    [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
+    // --- دوگمەی قفڵکراو (سەرەتا داخراوە) ---
+    self.startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.startBtn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; // ڕەنگی قفڵکراو
+    self.startBtn.layer.cornerRadius = 24; 
+    [self.startBtn setTitle:@"Locked 🔒" forState:UIControlStateNormal];
+    [self.startBtn setTitleColor:[UIColor colorWithWhite:1.0 alpha:0.4] forState:UIControlStateNormal]; // تێکستی کاڵ
+    self.startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
     
-    [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
-    [mainStack addArrangedSubview:startBtn];
+    [self.startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    [mainStack addArrangedSubview:self.startBtn];
 
     [NSLayoutConstraint activateConstraints:@[
-        [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
-        [startBtn.heightAnchor constraintEqualToConstant:48]
+        [self.startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
+        [self.startBtn.heightAnchor constraintEqualToConstant:48]
     ]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    // ئەنیمەیشنی دەرکەوتنی کارتەکە
     [UIView animateWithDuration:0.5 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.glassCard.alpha = 1.0;
     } completion:nil];
     
-    // ئەنیمەیشنی "هەناسەدان" بۆ ڕووناکییەکەی پشتی لۆگۆکە
     [UIView animateWithDuration:1.5
                           delay:0.3
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
@@ -196,7 +197,22 @@
                      } completion:nil];
 }
 
-// فەنکشنی خەزنکردن
+// فەنکشنی پشکنینی قفڵەکە
+- (void)checkUnlockCondition {
+    // ئەگەر هەردووکیان کلیک کرابوون، ئەوا دوگمەکە دەکەینەوە بە شین و ئەیکەینەوە
+    if (self.clickedTelegram && self.clickedTikTok) {
+        [UIView animateWithDuration:0.3 animations:^{
+            self.startBtn.backgroundColor = [UIColor systemBlueColor];
+            [self.startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
+            [self.startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            self.startBtn.layer.shadowColor = [UIColor systemBlueColor].CGColor;
+            self.startBtn.layer.shadowOffset = CGSizeMake(0, 0);
+            self.startBtn.layer.shadowRadius = 8;
+            self.startBtn.layer.shadowOpacity = 0.6;
+        }];
+    }
+}
+
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
     if (sysName) {
         imgView.image = [UIImage systemImageNamed:sysName];
@@ -224,7 +240,6 @@
     }
 }
 
-// فەنکشنی دوگمە بازنەییەکان
 - (UIButton *)createCircleSocialButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; 
@@ -258,17 +273,41 @@
     [gen impactOccurred];
 }
 
-// لینکی تێلیگرام
-- (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
+// کاتێک تێلیگرام دەکاتەوە، مەرجەکە جێبەجێ دەبێت
+- (void)openTelegram { 
+    [self playHaptic]; 
+    self.clickedTelegram = YES;
+    [self checkUnlockCondition]; // پشکنین دەکات بزانێت دەبێت بکرێتەوە
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; 
+}
 
-// لینکی وێبسایت
-- (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; }
+- (void)openWebsite { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; 
+}
 
-// لینکی تیکتۆک (تازەکرایەوە بۆ ئەوەی داوات کرد)
-- (void)openTikTok { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
+// کاتێک تیکتۆک دەکاتەوە، مەرجەکە جێبەجێ دەبێت
+- (void)openTikTok { 
+    [self playHaptic]; 
+    self.clickedTikTok = YES;
+    [self checkUnlockCondition]; // پشکنین دەکات بزانێت دەبێت بکرێتەوە
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; 
+}
 
 - (void)closeTapped {
     [self playHaptic];
+    
+    // ئەگەر پەنجەی بە هەردووکیان نەنابوو، ئەوا ئاگادارکردنەوەیەکی پێ دەدەین و داناخرێت!
+    if (!self.clickedTelegram || !self.clickedTikTok) {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"⚠️ Locked" 
+                                                                       message:@"Please join our Telegram and follow our TikTok to unlock the menu." 
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [self presentViewController:alert animated:YES completion:nil];
+        return; // ڕێگری دەکات لە داخرانی شاشەکە
+    }
+    
+    // ئەگەر هەردووکی کردبوو، ئەوا بە جوانی دایدەخات
     [UIView animateWithDuration:0.3 animations:^{
         self.view.alpha = 0; 
     } completion:^(BOOL finished) {
