@@ -28,13 +28,13 @@
 
     // --- کارتی سەرەکی (دیزاینی نوێی ئەپ ستۆر) ---
     self.glassCard = [[UIView alloc] init];
-    self.glassCard.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.85]; // ڕەشییەکی زۆر پڕۆفیشناڵ
+    self.glassCard.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.85]; 
     self.glassCard.layer.cornerRadius = 28;
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.12].CGColor;
     self.glassCard.clipsToBounds = YES; 
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0; 
+    self.glassCard.alpha = 0; // ئامادەکردن بۆ ئەنیمەیشنی نەرم (بێ ئێرۆر)
     
     [self.view addSubview:self.glassCard];
     
@@ -42,7 +42,7 @@
         [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
         [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.85],
-        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:340] // گونجاوە بۆ هەموو شاشەیەک
+        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:340]
     ]];
 
     UIStackView *mainStack = [[UIStackView alloc] init];
@@ -68,7 +68,7 @@
     // لۆگۆی نوێی چوارگۆشەیی (Squircle)
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
-    self.logoView.layer.cornerRadius = 16; // لێواری خڕی مۆدێرن
+    self.logoView.layer.cornerRadius = 16; 
     self.logoView.clipsToBounds = YES;
     self.logoView.layer.borderWidth = 1.5;
     self.logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.2].CGColor;
@@ -97,7 +97,7 @@
     UILabel *subLabel = [[UILabel alloc] init];
     subLabel.text = @"Premium iOS Mod";
     subLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
-    subLabel.textColor = [UIColor colorWithRed:0.0 green:0.6 blue:1.0 alpha:1.0]; // ڕەنگی شینی کاڵ بۆ جوانی
+    subLabel.textColor = [UIColor colorWithRed:0.0 green:0.6 blue:1.0 alpha:1.0]; 
     [titleStack addArrangedSubview:subLabel];
 
     // هێڵی جیاکەرەوە
@@ -117,7 +117,7 @@
         [dockStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
     ]];
 
-    // دوگمەکان بە ڕیزبەندی داواکراو
+    // دوگمەکان (تێلیگرام، وێبسایت، تیکتۆک)
     UIButton *tgBtn = [self createModernBlockButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
     UIButton *webBtn = [self createModernBlockButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
     UIButton *ttBtn = [self createModernBlockButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
@@ -128,7 +128,7 @@
 
     // --- دوگمەی سەرەکی (OPEN) ---
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    startBtn.backgroundColor = [UIColor systemBlueColor]; // شینی ئۆرجیناڵی ئەپڵ
+    startBtn.backgroundColor = [UIColor systemBlueColor]; 
     startBtn.layer.cornerRadius = 16; 
     [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
     [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -139,18 +139,16 @@
 
     [NSLayoutConstraint activateConstraints:@[
         [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
-        [startBtn.heightAnchor constraintEqualToConstant:50] // گەورە و دیار
+        [startBtn.heightAnchor constraintEqualToConstant:50] 
     ]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    // ئەنیمەیشنی دەرکەوتنی نەرم
-    self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
+    // ئەنیمەیشنی دەرکەوتنی نەرم (سەد لە سەد بێ ئێرۆر)
     [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.glassCard.alpha = 1.0;
-        self.glassCard.transform = CGAffineTransformIdentity;
     } completion:nil];
 }
 
@@ -182,7 +180,7 @@
     }
 }
 
-// فەنکشنی نوێ بۆ دوگمەی سۆشیاڵ میدیاکان (ستایلی چوارگۆشەیی خڕ)
+// فەنکشنی دوگمەی سۆشیاڵ میدیاکان
 - (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.07]; 
@@ -197,7 +195,7 @@
     [btn addSubview:icon];
 
     [NSLayoutConstraint activateConstraints:@[
-        [btn.heightAnchor constraintEqualToConstant:55], // بەرزییەکی زۆر گونجاو
+        [btn.heightAnchor constraintEqualToConstant:55], 
         
         [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
         [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
@@ -232,9 +230,10 @@
 
 - (void)closeTapped {
     [self playHaptic];
+    
+    // ئەنیمەیشنی ونبوونی نەرم (سەد لە سەد بێ ئێرۆر)
     [UIView animateWithDuration:0.3 animations:^{
-        self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
-        self.view.alpha = 0; 
+        self.view.alpha = 0.0; 
     } completion:^(BOOL finished) {
         [self dismissViewControllerAnimated:NO completion:nil];
     }];
