@@ -5,7 +5,7 @@
 @property (nonatomic, strong) UIImageView *logoView; 
 @property (nonatomic, strong) UIView *glowView; // ڕووناکی پشتی لۆگۆکە
 - (void)openTelegram;
-- (void)openSecondTelegram;
+- (void)openTikTok; // گۆڕدرا بۆ تیکتۆک
 - (void)openWebsite;
 - (void)closeTapped;
 - (void)playHaptic;
@@ -33,21 +33,21 @@
     self.glassCard.layer.cornerRadius = 36;
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.15].CGColor;
-    self.glassCard.clipsToBounds = YES; // زۆر گرنگە بۆ تەڵخییەکەی ناوەوە
+    self.glassCard.clipsToBounds = YES; 
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
     self.glassCard.alpha = 0; 
     
     [self.view addSubview:self.glassCard];
     
-    // دانانی تەڵخی (Blur) بۆ خودی کارتەکە (ستایلی VisionOS)
-    UIBlurEffect *cardBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]; // تەڵخییەکی ڕوونتر
+    // دانانی تەڵخی (Blur) بۆ خودی کارتەکە
+    UIBlurEffect *cardBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]; 
     UIVisualEffectView *cardBlurView = [[UIVisualEffectView alloc] initWithEffect:cardBlurEffect];
     cardBlurView.translatesAutoresizingMaskIntoConstraints = NO;
     [self.glassCard addSubview:cardBlurView];
 
     // ڕەنگێکی زۆر کاڵ دەخەینە سەر تەڵخییەکەی کارتەکە بۆ جوانی
     UIView *cardOverlay = [[UIView alloc] init];
-    cardOverlay.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.6]; // تۆخیی کارتەکە
+    cardOverlay.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.6]; 
     cardOverlay.translatesAutoresizingMaskIntoConstraints = NO;
     [self.glassCard addSubview:cardOverlay];
 
@@ -96,7 +96,6 @@
     self.glowView.backgroundColor = [UIColor systemBlueColor];
     self.glowView.layer.cornerRadius = 36;
     self.glowView.translatesAutoresizingMaskIntoConstraints = NO;
-    // دانانی سێبەری ڕووناکی
     self.glowView.layer.shadowColor = [UIColor systemBlueColor].CGColor;
     self.glowView.layer.shadowOffset = CGSizeMake(0, 0);
     self.glowView.layer.shadowRadius = 15;
@@ -154,18 +153,19 @@
     dockStack.translatesAutoresizingMaskIntoConstraints = NO;
     [mainStack addArrangedSubview:dockStack];
 
-    UIButton *tgBtn1 = [self createCircleSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
+    // دروستکردنی دوگمەکان (تێلیگرام، وێبسایت، تیکتۆک)
+    UIButton *tgBtn = [self createCircleSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
     UIButton *webBtn = [self createCircleSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
-    UIButton *tgBtn2 = [self createCircleSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openSecondTelegram)];
+    UIButton *ttBtn = [self createCircleSocialButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
 
-    [dockStack addArrangedSubview:tgBtn1];
+    [dockStack addArrangedSubview:tgBtn];
     [dockStack addArrangedSubview:webBtn];
-    [dockStack addArrangedSubview:tgBtn2];
+    [dockStack addArrangedSubview:ttBtn]; // تیکتۆک لە کۆتاییدا دانرا
 
     // --- دوگمەی سەرەکی (OPEN) ---
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     startBtn.backgroundColor = [UIColor systemBlueColor];
-    startBtn.layer.cornerRadius = 24; // شێوەی حەب (Capsule)
+    startBtn.layer.cornerRadius = 24; 
     [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
     [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
@@ -187,12 +187,12 @@
         self.glassCard.alpha = 1.0;
     } completion:nil];
     
-    // ئەنیمەیشنی "هەناسەدان" بۆ ڕووناکییەکەی پشتی لۆگۆکە (سەد لە سەد سەلامەت بۆ گیت‌هاب)
+    // ئەنیمەیشنی "هەناسەدان" بۆ ڕووناکییەکەی پشتی لۆگۆکە
     [UIView animateWithDuration:1.5
                           delay:0.3
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
-                         self.glowView.alpha = 0.2; // ڕووناکییەکە کز دەبێت و دووبارە گەش دەبێتەوە
+                         self.glowView.alpha = 0.2; 
                      } completion:nil];
 }
 
@@ -224,11 +224,11 @@
     }
 }
 
-// فەنکشنی نوێ بۆ دوگمە بازنەییەکان
+// فەنکشنی دوگمە بازنەییەکان
 - (UIButton *)createCircleSocialButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; // ڕەنگی پاشبنەمای شووشەیی
-    btn.layer.cornerRadius = 24; // نیوەی پانییەکەی بۆ ئەوەی ببێتە بازنەی تەواو
+    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; 
+    btn.layer.cornerRadius = 24; 
     btn.layer.borderWidth = 1.0;
     btn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.15].CGColor;
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
@@ -261,11 +261,11 @@
 // لینکی تێلیگرام
 - (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
 
-// لینکی وێبسایتە نوێیەکە
+// لینکی وێبسایت
 - (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; }
 
-// لینکی تێلیگرامی دووەم
-- (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
+// لینکی تیکتۆک (تازەکرایەوە بۆ ئەوەی داوات کرد)
+- (void)openTikTok { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; }
 
 - (void)closeTapped {
     [self playHaptic];
