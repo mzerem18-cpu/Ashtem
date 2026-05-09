@@ -29,10 +29,12 @@
     // کارتی سەرەکی (پڕۆفیشناڵ و مۆدێرن)
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor colorWithRed:0.05 green:0.05 blue:0.06 alpha:0.75];
-    self.glassCard.layer.cornerRadius = 32; // خڕکردنی زیاتر بۆ ستایلی نوێ
+    self.glassCard.layer.cornerRadius = 32; 
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.15].CGColor;
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    // ئامادەکردن بۆ ئەنیمەیشنی دەرکەوتن (بەبێ ئێرۆر)
     self.glassCard.alpha = 0; 
     
     // سێبەری کارتەکە
@@ -79,6 +81,8 @@
     self.logoView.clipsToBounds = YES;
     self.logoView.layer.borderWidth = 2.0;
     self.logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
+    
+    // قەبارەی سەرەتایی لۆگۆکە
     self.logoView.frame = CGRectMake(0, 0, 64, 64); 
     [logoContainer addSubview:self.logoView];
 
@@ -105,7 +109,7 @@
     // --- ناوچەی (Floating Dock) بۆ سۆشیاڵ میدیاکان ---
     UIView *dockView = [[UIView alloc] init];
     dockView.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.08];
-    dockView.layer.cornerRadius = 24; // شێوەی حەب (Pill shape)
+    dockView.layer.cornerRadius = 24; 
     dockView.layer.borderWidth = 1.0;
     dockView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.05].CGColor;
     dockView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -125,7 +129,7 @@
         [dockStack.trailingAnchor constraintEqualToAnchor:dockView.trailingAnchor constant:-20]
     ]];
 
-    // دروستکردنی دوگمەکان (تێلیگرام، وێبسایت، تێلیگرام)
+    // دروستکردنی دوگمەکان
     UIButton *tgBtn1 = [self createDockButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
     UIButton *webBtn = [self createDockButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
     UIButton *tgBtn2 = [self createDockButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openSecondTelegram)];
@@ -137,12 +141,11 @@
     // --- دوگمەی Start Game ---
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     startBtn.backgroundColor = [UIColor whiteColor];
-    startBtn.layer.cornerRadius = 20; // خڕتر بۆ جوانی
+    startBtn.layer.cornerRadius = 20; 
     [startBtn setTitle:@"Start Game" forState:UIControlStateNormal];
     [startBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     startBtn.titleLabel.font = [UIFont systemFontOfSize:17 weight:UIFontWeightHeavy];
     
-    // سێبەری سپی بۆ دوگمەکە
     startBtn.layer.shadowColor = [UIColor whiteColor].CGColor;
     startBtn.layer.shadowOffset = CGSizeMake(0, 0);
     startBtn.layer.shadowRadius = 8;
@@ -160,19 +163,19 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    // ئەنیمەیشنی هاتنە ژوورەوە وەک نەرمەزەنجیر (Spring)
-    self.glassCard.transform = CGAffineTransformMakeScale(0.8, 0.8);
-    [UIView animateWithDuration:0.5 delay:0.0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    // ئەنیمەیشنی سەلامەت بۆ دەرکەوتن بەبێ ئێرۆر
+    [UIView animateWithDuration:0.4 animations:^{
         self.glassCard.alpha = 1.0;
-        self.glassCard.transform = CGAffineTransformIdentity;
-    } completion:nil];
+    }];
     
-    // ئەنیمەیشنی (لێدانی دڵ) بۆ لۆگۆکە وەک خۆی
+    // ئەنیمەیشنی (هەناسەدان) بۆ لۆگۆکە بە گۆڕینی قەبارە (سەد لە سەد بێ کێشەیە بۆ گیت‌هاب)
     [UIView animateWithDuration:1.2
                           delay:0.2
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
-                         self.logoView.transform = CGAffineTransformMakeScale(1.08, 1.08);
+                         // قەبارەکەی کەمێک گەورەتر دەبێتەوە و دەگەڕێتەوە
+                         self.logoView.frame = CGRectMake(-3, -3, 70, 70);
+                         self.logoView.layer.cornerRadius = 35;
                      } completion:nil];
 }
 
@@ -203,7 +206,6 @@
     }
 }
 
-// فەنکشنی نوێ بۆ دوگمەکانی ناو (Dock)
 - (UIButton *)createDockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor clearColor];
@@ -234,20 +236,14 @@
     [gen impactOccurred];
 }
 
-// لینکی تێلیگرامی یەکەم
 - (void)openTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
-
-// لینکی وێبسایتە نوێیەکەت
 - (void)openWebsite { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; }
-
-// لینکی تێلیگرامی دووەم
 - (void)openSecondTelegram { [self playHaptic]; [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; }
 
 - (void)closeTapped {
     [self playHaptic];
     [UIView animateWithDuration:0.3 animations:^{
-        self.glassCard.transform = CGAffineTransformMakeScale(0.8, 0.8);
-        self.view.alpha = 0;
+        self.view.alpha = 0; // ئەنیمەیشنی ونبوون بە سەلامەتی
     } completion:^(BOOL finished) {
         [self dismissViewControllerAnimated:NO completion:nil];
     }];
