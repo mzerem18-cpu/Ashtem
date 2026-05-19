@@ -4,10 +4,17 @@
 @property (nonatomic, strong) UIView *glassCard;
 @property (nonatomic, strong) UIImageView *logoView; 
 @property (nonatomic, strong) UIView *glowView;
+@property (nonatomic, strong) UIButton *startBtn; // دوگمەی کردنەوە
+
+// گۆڕاوەکان بۆ زانینی ئەوەی ئایا کلیکیان کردووە یان نا
+@property (nonatomic, assign) BOOL clickedTelegram;
+@property (nonatomic, assign) BOOL clickedTikTok;
+
 - (void)openTelegram;
 - (void)openTikTok;
 - (void)openWebsite;
 - (void)closeTapped;
+- (void)checkUnlockCondition; // فەنکشنی کردنەوەی قفڵەکە
 - (void)playHaptic;
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
 @end
@@ -16,6 +23,10 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    // لە سەرەتادا هیچ کامیان کلیک نەکراون
+    self.clickedTelegram = NO;
+    self.clickedTikTok = NO;
     
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
@@ -77,7 +88,7 @@
         [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
 
-    // --- بەشی سەرەوە ---
+    // --- بەشی سەرەوە (لۆگۆ بە ڕووناکییەوە) ---
     UIView *logoContainer = [[UIView alloc] init];
     logoContainer.translatesAutoresizingMaskIntoConstraints = NO;
     [mainStack addArrangedSubview:logoContainer];
@@ -154,25 +165,20 @@
     [dockStack addArrangedSubview:webBtn];
     [dockStack addArrangedSubview:ttBtn];
 
-    // --- دوگمەی کراوە و ئاسایی (OPEN) ---
-    UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    startBtn.backgroundColor = [UIColor systemBlueColor];
-    startBtn.layer.cornerRadius = 24; 
-    [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
-    [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
+    // --- دوگمەی قفڵکراو (سەرەتا داخراوە) ---
+    self.startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.startBtn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; // ڕەنگی قفڵکراو
+    self.startBtn.layer.cornerRadius = 24; 
+    [self.startBtn setTitle:@"Locked 🔒" forState:UIControlStateNormal];
+    [self.startBtn setTitleColor:[UIColor colorWithWhite:1.0 alpha:0.4] forState:UIControlStateNormal]; // تێکستی کاڵ
+    self.startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
     
-    startBtn.layer.shadowColor = [UIColor systemBlueColor].CGColor;
-    startBtn.layer.shadowOffset = CGSizeMake(0, 0);
-    startBtn.layer.shadowRadius = 8;
-    startBtn.layer.shadowOpacity = 0.6;
-    
-    [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
-    [mainStack addArrangedSubview:startBtn];
+    [self.startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    [mainStack addArrangedSubview:self.startBtn];
 
     [NSLayoutConstraint activateConstraints:@[
-        [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
-        [startBtn.heightAnchor constraintEqualToConstant:48]
+        [self.startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
+        [self.startBtn.heightAnchor constraintEqualToConstant:48]
     ]];
 }
 
@@ -189,6 +195,22 @@
                      animations:^{
                          self.glowView.alpha = 0.2; 
                      } completion:nil];
+}
+
+// فەنکشنی پشکنینی قفڵەکە
+- (void)checkUnlockCondition {
+    // ئەگەر هەردووکیان کلیک کرابوون، ئەوا دوگمەکە دەکەینەوە بە شین و ئەیکەینەوە
+    if (self.clickedTelegram && self.clickedTikTok) {
+        [UIView animateWithDuration:0.3 animations:^{
+            self.startBtn.backgroundColor = [UIColor systemBlueColor];
+            [self.startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
+            [self.startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            self.startBtn.layer.shadowColor = [UIColor systemBlueColor].CGColor;
+            self.startBtn.layer.shadowOffset = CGSizeMake(0, 0);
+            self.startBtn.layer.shadowRadius = 8;
+            self.startBtn.layer.shadowOpacity = 0.6;
+        }];
+    }
 }
 
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
@@ -251,8 +273,11 @@
     [gen impactOccurred];
 }
 
+// کاتێک تێلیگرام دەکاتەوە، مەرجەکە جێبەجێ دەبێت
 - (void)openTelegram { 
     [self playHaptic]; 
+    self.clickedTelegram = YES;
+    [self checkUnlockCondition]; // پشکنین دەکات بزانێت دەبێت بکرێتەوە
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; 
 }
 
@@ -261,15 +286,28 @@
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; 
 }
 
+// کاتێک تیکتۆک دەکاتەوە، مەرجەکە جێبەجێ دەبێت
 - (void)openTikTok { 
     [self playHaptic]; 
+    self.clickedTikTok = YES;
+    [self checkUnlockCondition]; // پشکنین دەکات بزانێت دەبێت بکرێتەوە
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; 
 }
 
 - (void)closeTapped {
     [self playHaptic];
     
-    // ڕاستەوخۆ دادەخرێت بەبێ هیچ مەرجێک
+    // ئەگەر پەنجەی بە هەردووکیان نەنابوو، ئەوا ئاگادارکردنەوەیەکی پێ دەدەین و داناخرێت!
+    if (!self.clickedTelegram || !self.clickedTikTok) {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"⚠️ Locked" 
+                                                                       message:@"Please join our Telegram and follow our TikTok to unlock the menu." 
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [self presentViewController:alert animated:YES completion:nil];
+        return; // ڕێگری دەکات لە داخرانی شاشەکە
+    }
+    
+    // ئەگەر هەردووکی کردبوو، ئەوا بە جوانی دایدەخات
     [UIView animateWithDuration:0.3 animations:^{
         self.view.alpha = 0; 
     } completion:^(BOOL finished) {
