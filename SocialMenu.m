@@ -1,284 +1,304 @@
-//
-//  HomeView.swift
-//  AshteMobile
-//
-//  Created for AshteMobile
-//  Modified to redirect downloads to external website
-//
+#import <UIKit/UIKit.h>
 
-import SwiftUI
-import NimbleViews
-import Foundation
-import UIKit
+@interface AshteWelcomeViewController : UIViewController
+@property (nonatomic, strong) UIView *glassCard;
+@property (nonatomic, strong) UIImageView *logoView; 
+@property (nonatomic, strong) UIView *glowView;
+- (void)openTelegram;
+- (void)openTikTok;
+- (void)openWebsite;
+- (void)closeTapped;
+- (void)playHaptic;
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
+@end
 
-// MARK: - Models
-struct HomeApp: Codable, Identifiable {
-    var id: String { url }
-    let name: String
-    let version: String?
-    let category: String?
-    let image: String?
-    let size: String?
-    let developer: String?
-    let bundle: String?
-    let url: String
-    let status: String?
-    let banner: String?
-    let hack: [String]?
+@implementation AshteWelcomeViewController
 
-    var fullImageURL: URL? {
-        guard let img = image else { return nil }
-        if img.hasPrefix("http") { return URL(string: img) }
-        return URL(string: "https://ashtemobile.site/\(img)")
-    }
+- (void)viewDidLoad {
+    [super viewDidLoad];
     
-    var fullBannerURL: URL? {
-        if let ban = banner {
-            if ban.hasPrefix("http") { return URL(string: ban) }
-            return URL(string: "https://ashtemobile.site/\(ban)")
-        }
-        return fullImageURL
-    }
-}
+    self.view.backgroundColor = [UIColor clearColor];
+    self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-// MARK: - Main Home View
-struct HomeView: View {
-    @State private var apps: [HomeApp] = []
+    UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+    UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+    blurView.frame = self.view.bounds;
+    blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:blurView];
+
+    self.glassCard = [[UIView alloc] init];
+    self.glassCard.backgroundColor = [UIColor clearColor];
+    self.glassCard.layer.cornerRadius = 36;
+    self.glassCard.layer.borderWidth = 1.0;
+    self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.15].CGColor;
+    self.glassCard.clipsToBounds = YES; 
+    self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
+    self.glassCard.alpha = 0; 
     
-    // --- بەشی وێنە لاکێشەییەکان ---
-    @State private var currentBanner = 0
-    let myCustomBanners = [
-        "https://ashtemobile.site/img/t.png",
-        "https://ashtemobile.site/img/i.png"
-    ]
+    [self.view addSubview:self.glassCard];
     
-    let myCustomLinks = [
-        "https://t.me/ashtemobile",
-        "https://www.instagram.com/ashtemobile"
-    ]
-    
-    let timer = Timer.publish(every: 4, on: .main, in: .common).autoconnect()
-    
-    var groupedApps: [(String, [HomeApp])] {
-        let dict = Dictionary(grouping: apps, by: { $0.category ?? "Apps" })
-        return dict.sorted { $0.key < $1.key }
-    }
-    
-    var body: some View {
-        ZStack(alignment: .top) {
-            Color(UIColor.systemBackground).ignoresSafeArea()
-            
-            NBNavigationView("Discover") {
-                ScrollView {
-                    VStack(spacing: 35) {
-                        
-                        // 1. بەشی وێنە لاکێشەییەکان (Banners)
-                        if !myCustomBanners.isEmpty {
-                            TabView(selection: $currentBanner) {
-                                ForEach(0..<myCustomBanners.count, id: \.self) { index in
-                                    Button(action: {
-                                        if index < myCustomLinks.count, let url = URL(string: myCustomLinks[index]) {
-                                            UIApplication.shared.open(url)
-                                        }
-                                    }) {
-                                        AsyncImage(url: URL(string: myCustomBanners[index])) { image in
-                                            image.resizable()
-                                                 .aspectRatio(contentMode: .fill)
-                                        } placeholder: {
-                                            Color(UIColor.secondarySystemBackground)
-                                                .overlay(Image(systemName: "photo").foregroundColor(.gray.opacity(0.5)))
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                    .tag(index)
-                                }
-                            }
-                            .frame(height: (UIScreen.main.bounds.width - 40) * (1948.0 / 3464.0))
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .padding(.horizontal, 20)
-                            .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 5)
-                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-                            .onReceive(timer) { _ in
-                                guard !myCustomBanners.isEmpty else { return }
-                                withAnimation(.easeInOut(duration: 0.5)) {
-                                    currentBanner = (currentBanner + 1) % myCustomBanners.count
-                                }
-                            }
-                        }
-                        
-                        // 2. بەشی یاری و بەرنامەکان
-                        VStack(alignment: .leading, spacing: 30) {
-                            ForEach(groupedApps, id: \.0) { category, categoryApps in
-                                VStack(alignment: .leading, spacing: 16) {
-                                    HStack(alignment: .lastTextBaseline) {
-                                        Text(category)
-                                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                                            .foregroundColor(.primary)
-                                        Spacer()
-                                        Text("See All")
-                                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                            .foregroundColor(.blue)
-                                    }
-                                    .padding(.horizontal, 20)
-                                    
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        LazyHStack(spacing: 16) {
-                                            ForEach(categoryApps) { app in
-                                                Button(action: {
-                                                    openWebsite()
-                                                }) {
-                                                    HomeAppCardView(app: app)
-                                                }
-                                                .buttonStyle(.plain)
-                                            }
-                                        }
-                                        .padding(.horizontal, 20)
-                                        .padding(.bottom, 15)
-                                        .padding(.top, 5)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // 3. بەشی سۆشیاڵ میدیاکان
-                        SocialMediaFooter()
-                            .padding(.top, 10)
-                            .padding(.bottom, 40)
-                    }
-                    .padding(.top, 15)
-                }
-                .refreshable {
-                    await loadApps()
-                }
-            }
-            .onAppear {
-                Task { await loadApps() }
-            }
-        }
-    }
-    
-    // 💡 فەنکشنی کردنەوەی وێبسایتەکە
-    private func openWebsite() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
+    UIBlurEffect *cardBlurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent]; 
+    UIVisualEffectView *cardBlurView = [[UIVisualEffectView alloc] initWithEffect:cardBlurEffect];
+    cardBlurView.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.glassCard addSubview:cardBlurView];
+
+    UIView *cardOverlay = [[UIView alloc] init];
+    cardOverlay.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.6]; 
+    cardOverlay.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.glassCard addSubview:cardOverlay];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
+        [self.glassCard.widthAnchor constraintEqualToConstant:320],
         
-        if let url = URL(string: "https://ashtemobile.site") {
-            UIApplication.shared.open(url)
-        }
+        [cardBlurView.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor],
+        [cardBlurView.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor],
+        [cardBlurView.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor],
+        [cardBlurView.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor],
+        
+        [cardOverlay.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor],
+        [cardOverlay.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor],
+        [cardOverlay.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor],
+        [cardOverlay.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor]
+    ]];
+
+    UIStackView *mainStack = [[UIStackView alloc] init];
+    mainStack.axis = UILayoutConstraintAxisVertical;
+    mainStack.spacing = 24;
+    mainStack.alignment = UIStackViewAlignmentCenter;
+    mainStack.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.glassCard addSubview:mainStack];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:30],
+        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-30],
+        [mainStack.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor constant:24],
+        [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
+    ]];
+
+    // --- بەشی سەرەوە ---
+    UIView *logoContainer = [[UIView alloc] init];
+    logoContainer.translatesAutoresizingMaskIntoConstraints = NO;
+    [mainStack addArrangedSubview:logoContainer];
+    
+    [NSLayoutConstraint activateConstraints:@[
+        [logoContainer.widthAnchor constraintEqualToConstant:72],
+        [logoContainer.heightAnchor constraintEqualToConstant:72]
+    ]];
+
+    self.glowView = [[UIView alloc] init];
+    self.glowView.backgroundColor = [UIColor systemBlueColor];
+    self.glowView.layer.cornerRadius = 36;
+    self.glowView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.glowView.layer.shadowColor = [UIColor systemBlueColor].CGColor;
+    self.glowView.layer.shadowOffset = CGSizeMake(0, 0);
+    self.glowView.layer.shadowRadius = 15;
+    self.glowView.layer.shadowOpacity = 1.0;
+    [logoContainer addSubview:self.glowView];
+
+    self.logoView = [[UIImageView alloc] init];
+    self.logoView.contentMode = UIViewContentModeScaleAspectFill;
+    self.logoView.layer.cornerRadius = 32; 
+    self.logoView.clipsToBounds = YES;
+    self.logoView.layer.borderWidth = 2.0;
+    self.logoView.layer.borderColor = [UIColor whiteColor].CGColor;
+    self.logoView.translatesAutoresizingMaskIntoConstraints = NO;
+    [logoContainer addSubview:self.logoView];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [self.glowView.centerXAnchor constraintEqualToAnchor:logoContainer.centerXAnchor],
+        [self.glowView.centerYAnchor constraintEqualToAnchor:logoContainer.centerYAnchor],
+        [self.glowView.widthAnchor constraintEqualToConstant:64],
+        [self.glowView.heightAnchor constraintEqualToConstant:64],
+        
+        [self.logoView.centerXAnchor constraintEqualToAnchor:logoContainer.centerXAnchor],
+        [self.logoView.centerYAnchor constraintEqualToAnchor:logoContainer.centerYAnchor],
+        [self.logoView.widthAnchor constraintEqualToConstant:64],
+        [self.logoView.heightAnchor constraintEqualToConstant:64]
+    ]];
+
+    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"person.circle.fill"];
+
+    UIStackView *titleStack = [[UIStackView alloc] init];
+    titleStack.axis = UILayoutConstraintAxisVertical;
+    titleStack.spacing = 6;
+    titleStack.alignment = UIStackViewAlignmentCenter;
+    [mainStack addArrangedSubview:titleStack];
+
+    UILabel *titleLabel = [[UILabel alloc] init];
+    titleLabel.text = @"AshteMobile FREE"; 
+    titleLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightBlack];
+    titleLabel.textColor = [UIColor whiteColor];
+    [titleStack addArrangedSubview:titleLabel];
+
+    UILabel *subLabel = [[UILabel alloc] init];
+    subLabel.text = @"Premium iOS Experience";
+    subLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightMedium];
+    subLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.6];
+    [titleStack addArrangedSubview:subLabel];
+
+    // --- سۆشیاڵ میدیا ---
+    UIStackView *dockStack = [[UIStackView alloc] init];
+    dockStack.axis = UILayoutConstraintAxisHorizontal;
+    dockStack.spacing = 20;
+    dockStack.alignment = UIStackViewAlignmentCenter;
+    dockStack.translatesAutoresizingMaskIntoConstraints = NO;
+    [mainStack addArrangedSubview:dockStack];
+
+    UIButton *tgBtn = [self createCircleSocialButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
+    UIButton *webBtn = [self createCircleSocialButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
+    UIButton *ttBtn = [self createCircleSocialButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
+
+    [dockStack addArrangedSubview:tgBtn];
+    [dockStack addArrangedSubview:webBtn];
+    [dockStack addArrangedSubview:ttBtn];
+
+    // --- دوگمەی کراوە و ئاسایی (OPEN) ---
+    UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    startBtn.backgroundColor = [UIColor systemBlueColor];
+    startBtn.layer.cornerRadius = 24; 
+    [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
+    [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightHeavy];
+    
+    startBtn.layer.shadowColor = [UIColor systemBlueColor].CGColor;
+    startBtn.layer.shadowOffset = CGSizeMake(0, 0);
+    startBtn.layer.shadowRadius = 8;
+    startBtn.layer.shadowOpacity = 0.6;
+    
+    [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    [mainStack addArrangedSubview:startBtn];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
+        [startBtn.heightAnchor constraintEqualToConstant:48]
+    ]];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    [UIView animateWithDuration:0.5 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.glassCard.alpha = 1.0;
+    } completion:nil];
+    
+    [UIView animateWithDuration:1.5
+                          delay:0.3
+                        options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
+                     animations:^{
+                         self.glowView.alpha = 0.2; 
+                     } completion:nil];
+}
+
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
+    if (sysName) {
+        imgView.image = [UIImage systemImageNamed:sysName];
+        imgView.tintColor = [UIColor colorWithWhite:1.0 alpha:0.4];
     }
     
-    // هێنانی داتا
-    private func loadApps() async {
-        guard let url = URL(string: "https://ashtemobile.site/ipaas.json") else { return }
-        var request = URLRequest(url: url)
-        request.cachePolicy = .reloadIgnoringLocalCacheData
-        do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let decoded = try JSONDecoder().decode([HomeApp].self, from: data)
-            DispatchQueue.main.async {
-                self.apps = decoded
-            }
-        } catch {
-            print("Error loading apps: \(error)")
-        }
-    }
-}
-
-// MARK: - App Card View
-struct HomeAppCardView: View {
-    let app: HomeApp
+    NSString *docDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *safeName = [[urlStr componentsSeparatedByString:@"/"] lastObject];
+    NSString *cachePath = [docDir stringByAppendingPathComponent:safeName];
     
-    var body: some View {
-        VStack(alignment: .center, spacing: 10) {
-            
-            AsyncImage(url: app.fullImageURL) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Color(UIColor.secondarySystemBackground)
-            }
-            .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
-            
-            VStack(spacing: 2) {
-                Text(app.name)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
-                    .lineLimit(1)
-                    .multilineTextAlignment(.center)
-                
-                Text(app.category ?? "App")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer(minLength: 5)
-            
-            // 💡 لێرەدا GETم گۆڕی بۆ OPEN
-            Text("OPEN")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .frame(maxWidth: .infinity)
-                .frame(height: 30)
-                .background(Color.blue.opacity(0.12))
-                .foregroundColor(.blue)
-                .clipShape(Capsule())
-        }
-        .padding(14)
-        .frame(width: 135, height: 200)
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-    }
-}
-
-// MARK: - Social Media Footer
-struct SocialMediaFooter: View {
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Connect With Us")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(.primary)
-            
-            HStack(spacing: 24) {
-                SocialButton(icon: "paperplane.fill", color: .blue, url: "https://t.me/ashtemobile")
-                SocialButton(icon: "camera.fill", color: Color(UIColor.systemPurple), url: "https://www.instagram.com/ashtemobile")
-                SocialButton(icon: "play.tv.fill", color: .primary, url: "https://www.tiktok.com/@ashtemobile")
-            }
-        }
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity)
-        .background(Color(UIColor.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .padding(.horizontal, 20)
-    }
-}
-
-struct SocialButton: View {
-    let icon: String
-    let color: Color
-    let url: String
+    NSData *cachedData = [NSData dataWithContentsOfFile:cachePath];
     
-    var body: some View {
-        Button(action: {
-            if let link = URL(string: url) {
-                UIApplication.shared.open(link)
+    if (cachedData) {
+        imgView.image = [UIImage imageWithData:cachedData];
+    } else {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlStr]];
+            if (data) {
+                [data writeToFile:cachePath atomically:YES];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    imgView.image = [UIImage imageWithData:data];
+                });
             }
-        }) {
-            Image(systemName: icon)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 50, height: 50)
-                .background(color)
-                .clipShape(Circle())
-        }
-        .buttonStyle(ScaleButtonStyle())
+        });
     }
 }
 
-struct ScaleButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.92 : 1)
-            .animation(.easeInOut(duration: 0.2), value: configuration.isPressed)
-    }
+- (UIButton *)createCircleSocialButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; 
+    btn.layer.cornerRadius = 24; 
+    btn.layer.borderWidth = 1.0;
+    btn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.15].CGColor;
+    [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
+
+    UIImageView *icon = [[UIImageView alloc] init];
+    icon.contentMode = UIViewContentModeScaleAspectFit;
+    icon.translatesAutoresizingMaskIntoConstraints = NO;
+    [btn addSubview:icon];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [btn.widthAnchor constraintEqualToConstant:48],
+        [btn.heightAnchor constraintEqualToConstant:48],
+        
+        [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
+        [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
+        [icon.widthAnchor constraintEqualToConstant:26],
+        [icon.heightAnchor constraintEqualToConstant:26]
+    ]];
+
+    [self loadAndCacheImage:url forImageView:icon placeholder:ph];
+
+    return btn;
+}
+
+- (void)playHaptic {
+    UIImpactFeedbackGenerator *gen = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+    [gen impactOccurred];
+}
+
+- (void)openTelegram { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; 
+}
+
+- (void)openWebsite { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; 
+}
+
+- (void)openTikTok { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; 
+}
+
+- (void)closeTapped {
+    [self playHaptic];
+    
+    // ڕاستەوخۆ دادەخرێت بەبێ هیچ مەرجێک
+    [UIView animateWithDuration:0.3 animations:^{
+        self.view.alpha = 0; 
+    } completion:^(BOOL finished) {
+        [self dismissViewControllerAnimated:NO completion:nil];
+    }];
+}
+
+@end
+
+// --- بەشی ئینجێکتکردن ---
+__attribute__((constructor)) static void showCustomWelcomeScreen() {
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                UIWindow *keyWindow = nil;
+                for (UIWindow *window in [UIApplication sharedApplication].windows) {
+                    if (window.isKeyWindow) { keyWindow = window; break; }
+                }
+                if (keyWindow && keyWindow.rootViewController) {
+                    UIViewController *topController = keyWindow.rootViewController;
+                    while (topController.presentedViewController) { topController = topController.presentedViewController; }
+                    AshteWelcomeViewController *welcomeVC = [[AshteWelcomeViewController alloc] init];
+                    
+                    welcomeVC.modalPresentationStyle = UIModalPresentationOverFullScreen;
+                    
+                    [topController presentViewController:welcomeVC animated:NO completion:nil];
+                }
+            });
+        });
+    }];
 }
