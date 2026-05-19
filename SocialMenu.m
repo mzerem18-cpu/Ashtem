@@ -1,5 +1,7 @@
+#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#include <dlfcn.h> // زیادکراوە بۆ پشکنینی فایلەکان
+#include <dlfcn.h> 
+#include <stdlib.h> // زیادکراوە بۆ کارکردنی فەرمانی exit
 
 // ناوی دایلایبەکەی خۆت لێرە دابنێ (دەبێت ڕێک هەمان ناو بێت)
 #define MY_DYLIB_NAME "AshteMobile.dylib"
@@ -38,7 +40,7 @@
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.12].CGColor;
     self.glassCard.clipsToBounds = YES; 
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0; // ئامادەکردن بۆ ئەنیمەیشنی نەرم (بێ ئێرۆر)
+    self.glassCard.alpha = 0; 
     
     [self.view addSubview:self.glassCard];
     
@@ -62,14 +64,14 @@
         [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
 
-    // --- بەشی هێدەر (لۆگۆ لە چەپ، ناو لە ڕاست) ---
+    // --- بەشی هێدەر ---
     UIStackView *headerStack = [[UIStackView alloc] init];
     headerStack.axis = UILayoutConstraintAxisHorizontal;
     headerStack.spacing = 16;
     headerStack.alignment = UIStackViewAlignmentCenter;
     [mainStack addArrangedSubview:headerStack];
 
-    // لۆگۆی نوێی چوارگۆشەیی (Squircle)
+    // لۆگۆ
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
     self.logoView.layer.cornerRadius = 16; 
@@ -104,13 +106,12 @@
     subLabel.textColor = [UIColor colorWithRed:0.0 green:0.6 blue:1.0 alpha:1.0]; 
     [titleStack addArrangedSubview:subLabel];
 
-    // هێڵی جیاکەرەوە
     UIView *divider = [[UIView alloc] init];
     divider.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1];
     [divider.heightAnchor constraintEqualToConstant:1].active = YES;
     [mainStack addArrangedSubview:divider];
 
-    // --- سۆشیاڵ میدیا (دیزاینی بلۆکی مۆدێرن) ---
+    // --- سۆشیاڵ میدیاکان ---
     UIStackView *dockStack = [[UIStackView alloc] init];
     dockStack.axis = UILayoutConstraintAxisHorizontal;
     dockStack.spacing = 15;
@@ -121,7 +122,6 @@
         [dockStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
     ]];
 
-    // دوگمەکان (تێلیگرام، وێبسایت، تیکتۆک)
     UIButton *tgBtn = [self createModernBlockButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
     UIButton *webBtn = [self createModernBlockButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
     UIButton *ttBtn = [self createModernBlockButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
@@ -149,14 +149,11 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
-    // ئەنیمەیشنی دەرکەوتنی نەرم (سەد لە سەد بێ ئێرۆر)
     [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.glassCard.alpha = 1.0;
     } completion:nil];
 }
 
-// سیستەمی خەزنکردن و خێراکردن
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
     if (sysName) {
         imgView.image = [UIImage systemImageNamed:sysName];
@@ -184,7 +181,6 @@
     }
 }
 
-// فەنکشنی دوگمەی سۆشیاڵ میدیاکان
 - (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.07]; 
@@ -200,7 +196,6 @@
 
     [NSLayoutConstraint activateConstraints:@[
         [btn.heightAnchor constraintEqualToConstant:55], 
-        
         [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
         [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
         [icon.widthAnchor constraintEqualToConstant:30],
@@ -234,8 +229,6 @@
 
 - (void)closeTapped {
     [self playHaptic];
-    
-    // ئەنیمەیشنی ونبوونی نەرم
     [UIView animateWithDuration:0.3 animations:^{
         self.view.alpha = 0.0; 
     } completion:^(BOOL finished) {
@@ -245,21 +238,20 @@
 
 @end
 
-// --- بەشی ئینجێکتکردن و پاراستن (Anti-Tamper) ---
+// --- بەشی ئینجێکتکردن و پاراستن ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 
-                // ١. پشکنینی سکیوریتی - بزانین دایلایبەکە سڕاوەتەوە یان نا؟
+                // پشکنینی سکیوریتی - بزانین دایلایبەکە سڕاوەتەوە یان نا؟
                 void *handle = dlopen(MY_DYLIB_NAME, RTLD_NOW);
                 if (!handle) {
-                    // ئەگەر فایلەکە نەدۆزرایەوە، ڕاستەوخۆ یارییەکە دادەخات
                     exit(0);
                 }
                 
-                // ٢. ئەگەر کێشە نەبوو، مێنیوەکە نیشان دەدات
+                // ئەگەر کێشە نەبوو، مێنیوەکە نیشان دەدات
                 UIWindow *keyWindow = nil;
                 for (UIWindow *window in [UIApplication sharedApplication].windows) {
                     if (window.isKeyWindow) { keyWindow = window; break; }
