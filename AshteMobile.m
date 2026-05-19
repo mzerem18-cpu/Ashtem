@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #include <dlfcn.h> 
-#include <stdlib.h> // زیادکراوە بۆ کارکردنی فەرمانی exit
+#include <stdlib.h>
 
 // ناوی دایلایبەکەی خۆت لێرە دابنێ (دەبێت ڕێک هەمان ناو بێت)
 #define MY_DYLIB_NAME "AshteMobile.dylib"
@@ -15,6 +15,8 @@
 - (void)closeTapped;
 - (void)playHaptic;
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
+// ئەم دێڕەی خوارەوە کێشەکەی چارەسەر کرد کە ئێرۆری دەدا:
+- (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action;
 @end
 
 @implementation AshteWelcomeViewController
@@ -25,14 +27,12 @@
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی تەڵخی سەرتاسەری یارییەکە
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
     blurView.frame = self.view.bounds;
     blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:blurView];
 
-    // --- کارتی سەرەکی (دیزاینی نوێی ئەپ ستۆر) ---
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.85]; 
     self.glassCard.layer.cornerRadius = 28;
@@ -64,14 +64,12 @@
         [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
 
-    // --- بەشی هێدەر ---
     UIStackView *headerStack = [[UIStackView alloc] init];
     headerStack.axis = UILayoutConstraintAxisHorizontal;
     headerStack.spacing = 16;
     headerStack.alignment = UIStackViewAlignmentCenter;
     [mainStack addArrangedSubview:headerStack];
 
-    // لۆگۆ
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
     self.logoView.layer.cornerRadius = 16; 
@@ -88,7 +86,6 @@
 
     [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"app.fill"];
 
-    // ناو و سەبتایتڵ
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
     titleStack.spacing = 4;
@@ -111,7 +108,6 @@
     [divider.heightAnchor constraintEqualToConstant:1].active = YES;
     [mainStack addArrangedSubview:divider];
 
-    // --- سۆشیاڵ میدیاکان ---
     UIStackView *dockStack = [[UIStackView alloc] init];
     dockStack.axis = UILayoutConstraintAxisHorizontal;
     dockStack.spacing = 15;
@@ -130,7 +126,6 @@
     [dockStack addArrangedSubview:webBtn];
     [dockStack addArrangedSubview:ttBtn];
 
-    // --- دوگمەی سەرەکی (OPEN) ---
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     startBtn.backgroundColor = [UIColor systemBlueColor]; 
     startBtn.layer.cornerRadius = 16; 
