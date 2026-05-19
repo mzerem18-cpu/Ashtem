@@ -1,10 +1,5 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#include <dlfcn.h> 
-#include <stdlib.h>
-
-// ناوی دایلایبەکەی خۆت لێرە دابنێ (دەبێت ڕێک هەمان ناو بێت)
-#define MY_DYLIB_NAME "AshteMobile.dylib"
 
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
@@ -15,7 +10,8 @@
 - (void)closeTapped;
 - (void)playHaptic;
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
-// ئەم دێڕەی خوارەوە کێشەکەی چارەسەر کرد کە ئێرۆری دەدا:
+
+// ئەمە ئەو دێڕەیە کە کێشەی ئێرۆرەکەی گیت‌هابی چارەسەر کرد:
 - (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action;
 @end
 
@@ -27,12 +23,14 @@
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
+    // باکگراوندی تەڵخی سەرتاسەری یارییەکە
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
     blurView.frame = self.view.bounds;
     blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [self.view addSubview:blurView];
 
+    // --- کارتی سەرەکی (دیزاینی نوێی ئەپ ستۆر) ---
     self.glassCard = [[UIView alloc] init];
     self.glassCard.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.85]; 
     self.glassCard.layer.cornerRadius = 28;
@@ -40,7 +38,7 @@
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.12].CGColor;
     self.glassCard.clipsToBounds = YES; 
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0; 
+    self.glassCard.alpha = 0; // ئامادەکردن بۆ ئەنیمەیشنی نەرم
     
     [self.view addSubview:self.glassCard];
     
@@ -64,12 +62,14 @@
         [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
 
+    // --- بەشی هێدەر (لۆگۆ لە چەپ، ناو لە ڕاست) ---
     UIStackView *headerStack = [[UIStackView alloc] init];
     headerStack.axis = UILayoutConstraintAxisHorizontal;
     headerStack.spacing = 16;
     headerStack.alignment = UIStackViewAlignmentCenter;
     [mainStack addArrangedSubview:headerStack];
 
+    // لۆگۆی نوێی چوارگۆشەیی
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
     self.logoView.layer.cornerRadius = 16; 
@@ -86,6 +86,7 @@
 
     [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"app.fill"];
 
+    // ناو و سەبتایتڵ
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
     titleStack.spacing = 4;
@@ -103,11 +104,13 @@
     subLabel.textColor = [UIColor colorWithRed:0.0 green:0.6 blue:1.0 alpha:1.0]; 
     [titleStack addArrangedSubview:subLabel];
 
+    // هێڵی جیاکەرەوە
     UIView *divider = [[UIView alloc] init];
     divider.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1];
     [divider.heightAnchor constraintEqualToConstant:1].active = YES;
     [mainStack addArrangedSubview:divider];
 
+    // --- سۆشیاڵ میدیا ---
     UIStackView *dockStack = [[UIStackView alloc] init];
     dockStack.axis = UILayoutConstraintAxisHorizontal;
     dockStack.spacing = 15;
@@ -126,6 +129,7 @@
     [dockStack addArrangedSubview:webBtn];
     [dockStack addArrangedSubview:ttBtn];
 
+    // --- دوگمەی سەرەکی (OPEN) ---
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     startBtn.backgroundColor = [UIColor systemBlueColor]; 
     startBtn.layer.cornerRadius = 16; 
@@ -144,11 +148,13 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    
     [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.glassCard.alpha = 1.0;
     } completion:nil];
 }
 
+// سیستەمی خەزنکردن و خێراکردن
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
     if (sysName) {
         imgView.image = [UIImage systemImageNamed:sysName];
@@ -176,6 +182,7 @@
     }
 }
 
+// فەنکشنی دوگمەی سۆشیاڵ میدیاکان
 - (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.07]; 
@@ -191,6 +198,7 @@
 
     [NSLayoutConstraint activateConstraints:@[
         [btn.heightAnchor constraintEqualToConstant:55], 
+        
         [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
         [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
         [icon.widthAnchor constraintEqualToConstant:30],
@@ -224,6 +232,7 @@
 
 - (void)closeTapped {
     [self playHaptic];
+    
     [UIView animateWithDuration:0.3 animations:^{
         self.view.alpha = 0.0; 
     } completion:^(BOOL finished) {
@@ -233,20 +242,12 @@
 
 @end
 
-// --- بەشی ئینجێکتکردن و پاراستن ---
+// --- بەشی ئینجێکتکردن ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                
-                // پشکنینی سکیوریتی - بزانین دایلایبەکە سڕاوەتەوە یان نا؟
-                void *handle = dlopen(MY_DYLIB_NAME, RTLD_NOW);
-                if (!handle) {
-                    exit(0);
-                }
-                
-                // ئەگەر کێشە نەبوو، مێنیوەکە نیشان دەدات
                 UIWindow *keyWindow = nil;
                 for (UIWindow *window in [UIApplication sharedApplication].windows) {
                     if (window.isKeyWindow) { keyWindow = window; break; }
