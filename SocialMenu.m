@@ -1,4 +1,8 @@
 #import <UIKit/UIKit.h>
+#include <dlfcn.h> // زیادکراوە بۆ پشکنینی فایلەکان
+
+// ناوی دایلایبەکەی خۆت لێرە دابنێ (دەبێت ڕێک هەمان ناو بێت)
+#define MY_DYLIB_NAME "AshteMobile.dylib"
 
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
@@ -231,7 +235,7 @@
 - (void)closeTapped {
     [self playHaptic];
     
-    // ئەنیمەیشنی ونبوونی نەرم (سەد لە سەد بێ ئێرۆر)
+    // ئەنیمەیشنی ونبوونی نەرم
     [UIView animateWithDuration:0.3 animations:^{
         self.view.alpha = 0.0; 
     } completion:^(BOOL finished) {
@@ -241,12 +245,21 @@
 
 @end
 
-// --- بەشی ئینجێکتکردن ---
+// --- بەشی ئینجێکتکردن و پاراستن (Anti-Tamper) ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                
+                // ١. پشکنینی سکیوریتی - بزانین دایلایبەکە سڕاوەتەوە یان نا؟
+                void *handle = dlopen(MY_DYLIB_NAME, RTLD_NOW);
+                if (!handle) {
+                    // ئەگەر فایلەکە نەدۆزرایەوە، ڕاستەوخۆ یارییەکە دادەخات
+                    exit(0);
+                }
+                
+                // ٢. ئەگەر کێشە نەبوو، مێنیوەکە نیشان دەدات
                 UIWindow *keyWindow = nil;
                 for (UIWindow *window in [UIApplication sharedApplication].windows) {
                     if (window.isKeyWindow) { keyWindow = window; break; }
