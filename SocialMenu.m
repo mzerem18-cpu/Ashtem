@@ -1,13 +1,14 @@
 #import <UIKit/UIKit.h>
 
 @interface AshteWelcomeViewController : UIViewController
-@property (nonatomic, strong) UIView *cardView; // بۆ دروستکردنی کارتە شوشەییەکە
+@property (nonatomic, strong) UIView *glassCard;
+@property (nonatomic, strong) UIImageView *logoView; 
 - (void)openTelegram;
 - (void)openTikTok;
 - (void)openWebsite;
 - (void)closeTapped;
-- (UIButton *)createSocialButtonWithTitle:(NSString *)title color:(UIColor *)color imageUrl:(NSString *)imageUrl action:(SEL)action;
-- (void)playHaptic; // فەنکشنی لەرینەوەی مۆبایل
+- (void)playHaptic;
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName;
 @end
 
 @implementation AshteWelcomeViewController
@@ -16,250 +17,251 @@
     [super viewDidLoad];
     
     self.view.backgroundColor = [UIColor clearColor];
-    self.modalPresentationStyle = UIModalPresentationFullScreen;
+    self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی تەڵخ (Dark Blur)
+    // باکگراوندی تەڵخی سەرتاسەری یارییەکە
     UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-    UIVisualEffectView *blurEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
-    blurEffectView.frame = self.view.bounds;
-    blurEffectView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self.view addSubview:blurEffectView];
+    UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+    blurView.frame = self.view.bounds;
+    blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:blurView];
 
-    // دروستکردنی کارتی مۆدێرن (Glass Card) لە ناوەڕاستی شاشەکە
-    self.cardView = [[UIView alloc] init];
-    self.cardView.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1]; // شوشەیی ڕووناک
-    self.cardView.layer.cornerRadius = 35; // قەراخە خڕەکان
-    self.cardView.layer.borderWidth = 1.0;
-    self.cardView.layer.borderColor = [UIColor colorWithRed:0.85 green:0.75 blue:0.3 alpha:0.4].CGColor; // هێڵێکی تەنکی زێڕین/شاهانە
-    self.cardView.translatesAutoresizingMaskIntoConstraints = NO;
+    // --- کارتی سەرەکی (دیزاینی نوێی ئەپ ستۆر) ---
+    self.glassCard = [[UIView alloc] init];
+    self.glassCard.backgroundColor = [UIColor colorWithWhite:0.08 alpha:0.85]; // ڕەشییەکی زۆر پڕۆفیشناڵ
+    self.glassCard.layer.cornerRadius = 28;
+    self.glassCard.layer.borderWidth = 1.0;
+    self.glassCard.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.12].CGColor;
+    self.glassCard.clipsToBounds = YES; 
+    self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
+    self.glassCard.alpha = 0; 
     
-    // سێبەری کارتەکە (Shadow)
-    self.cardView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.cardView.layer.shadowOpacity = 0.4;
-    self.cardView.layer.shadowOffset = CGSizeMake(0, 10);
-    self.cardView.layer.shadowRadius = 20;
+    [self.view addSubview:self.glassCard];
     
-    // ئامادەکردنی بۆ ئەنیمەیشن (سەرەتا شاردراوەتەوە)
-    self.cardView.alpha = 0.0;
-    self.cardView.transform = CGAffineTransformMakeScale(0.8, 0.8);
-    [self.view addSubview:self.cardView];
-
-    // دانانی قیاسەکانی کارتەکە
     [NSLayoutConstraint activateConstraints:@[
-        [self.cardView.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
-        [self.cardView.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
-        [self.cardView.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.88]
+        [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
+        [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
+        [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.85],
+        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:340] // گونجاوە بۆ هەموو شاشەیەک
     ]];
 
-    // ڕێکخستنی شتەکانی ناو کارتەکە
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
-    mainStack.spacing = 25;
-    mainStack.alignment = UIStackViewAlignmentCenter;
+    mainStack.spacing = 20;
     mainStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [self.cardView addSubview:mainStack];
+    [self.glassCard addSubview:mainStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [mainStack.topAnchor constraintEqualToAnchor:self.cardView.topAnchor constant:35],
-        [mainStack.bottomAnchor constraintEqualToAnchor:self.cardView.bottomAnchor constant:-35],
-        [mainStack.leadingAnchor constraintEqualToAnchor:self.cardView.leadingAnchor constant:20],
-        [mainStack.trailingAnchor constraintEqualToAnchor:self.cardView.trailingAnchor constant:-20]
+        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:24],
+        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-24],
+        [mainStack.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor constant:24],
+        [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
 
-    // --- لۆگۆی کەسی ---
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    imageView.translatesAutoresizingMaskIntoConstraints = NO;
-    imageView.layer.cornerRadius = 40; // کەمێک گەورەتر و جوانتر
-    imageView.clipsToBounds = YES;
-    imageView.layer.borderWidth = 2.0;
-    imageView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
-    [mainStack addArrangedSubview:imageView];
+    // --- بەشی هێدەر (لۆگۆ لە چەپ، ناو لە ڕاست) ---
+    UIStackView *headerStack = [[UIStackView alloc] init];
+    headerStack.axis = UILayoutConstraintAxisHorizontal;
+    headerStack.spacing = 16;
+    headerStack.alignment = UIStackViewAlignmentCenter;
+    [mainStack addArrangedSubview:headerStack];
+
+    // لۆگۆی نوێی چوارگۆشەیی (Squircle)
+    self.logoView = [[UIImageView alloc] init];
+    self.logoView.contentMode = UIViewContentModeScaleAspectFill;
+    self.logoView.layer.cornerRadius = 16; // لێواری خڕی مۆدێرن
+    self.logoView.clipsToBounds = YES;
+    self.logoView.layer.borderWidth = 1.5;
+    self.logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.2].CGColor;
+    self.logoView.translatesAutoresizingMaskIntoConstraints = NO;
+    [headerStack addArrangedSubview:self.logoView];
 
     [NSLayoutConstraint activateConstraints:@[
-        [imageView.widthAnchor constraintEqualToConstant:80],
-        [imageView.heightAnchor constraintEqualToConstant:80]
+        [self.logoView.widthAnchor constraintEqualToConstant:60],
+        [self.logoView.heightAnchor constraintEqualToConstant:60]
     ]];
 
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/a.png"]];
-        if (data) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                imageView.image = [UIImage imageWithData:data];
-            });
-        }
-    });
+    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"app.fill"];
 
-    // --- دەقی پێشوازی ---
+    // ناو و سەبتایتڵ
+    UIStackView *titleStack = [[UIStackView alloc] init];
+    titleStack.axis = UILayoutConstraintAxisVertical;
+    titleStack.spacing = 4;
+    [headerStack addArrangedSubview:titleStack];
+
     UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.text = @"Welcome to\nAshteMobile";
-    titleLabel.numberOfLines = 2;
-    titleLabel.textAlignment = NSTextAlignmentCenter;
-    titleLabel.font = [UIFont systemFontOfSize:30 weight:UIFontWeightHeavy];
+    titleLabel.text = @"AshteMobile"; 
+    titleLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightHeavy];
     titleLabel.textColor = [UIColor whiteColor];
-    [mainStack addArrangedSubview:titleLabel];
+    [titleStack addArrangedSubview:titleLabel];
 
-    // --- سۆشیاڵ میدیا ---
-    UIStackView *socialStack = [[UIStackView alloc] init];
-    socialStack.axis = UILayoutConstraintAxisVertical;
-    socialStack.spacing = 15;
-    socialStack.distribution = UIStackViewDistributionFillEqually;
-    socialStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [mainStack addArrangedSubview:socialStack];
+    UILabel *subLabel = [[UILabel alloc] init];
+    subLabel.text = @"Premium iOS Mod";
+    subLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
+    subLabel.textColor = [UIColor colorWithRed:0.0 green:0.6 blue:1.0 alpha:1.0]; // ڕەنگی شینی کاڵ بۆ جوانی
+    [titleStack addArrangedSubview:subLabel];
+
+    // هێڵی جیاکەرەوە
+    UIView *divider = [[UIView alloc] init];
+    divider.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.1];
+    [divider.heightAnchor constraintEqualToConstant:1].active = YES;
+    [mainStack addArrangedSubview:divider];
+
+    // --- سۆشیاڵ میدیا (دیزاینی بلۆکی مۆدێرن) ---
+    UIStackView *dockStack = [[UIStackView alloc] init];
+    dockStack.axis = UILayoutConstraintAxisHorizontal;
+    dockStack.spacing = 15;
+    dockStack.distribution = UIStackViewDistributionFillEqually;
+    [mainStack addArrangedSubview:dockStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [socialStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
+        [dockStack.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor]
     ]];
 
-    UIButton *tgBtn = [self createSocialButtonWithTitle:@"Telegram" color:[UIColor colorWithRed:0.2 green:0.6 blue:1.0 alpha:1.0] imageUrl:@"https://img.icons8.com/color/96/telegram-app.png" action:@selector(openTelegram)];
-    UIButton *ttBtn = [self createSocialButtonWithTitle:@"TikTok" color:[UIColor whiteColor] imageUrl:@"https://img.icons8.com/fluent/96/tiktok.png" action:@selector(openTikTok)];
-    UIButton *webBtn = [self createSocialButtonWithTitle:@"Website" color:[UIColor colorWithRed:0.8 green:0.4 blue:1.0 alpha:1.0] imageUrl:@"https://img.icons8.com/fluency/96/web.png" action:@selector(openWebsite)];
+    // دوگمەکان بە ڕیزبەندی داواکراو
+    UIButton *tgBtn = [self createModernBlockButton:@"https://img.icons8.com/color/100/telegram-app.png" placeholder:@"paperplane.fill" action:@selector(openTelegram)];
+    UIButton *webBtn = [self createModernBlockButton:@"https://img.icons8.com/color/100/safari--v1.png" placeholder:@"safari.fill" action:@selector(openWebsite)];
+    UIButton *ttBtn = [self createModernBlockButton:@"https://img.icons8.com/fluency/100/tiktok.png" placeholder:@"play.tv.fill" action:@selector(openTikTok)];
 
-    [socialStack addArrangedSubview:tgBtn];
-    [socialStack addArrangedSubview:ttBtn];
-    [socialStack addArrangedSubview:webBtn];
+    [dockStack addArrangedSubview:tgBtn];
+    [dockStack addArrangedSubview:webBtn];
+    [dockStack addArrangedSubview:ttBtn];
 
-    // --- دوگمەی دەستپێکرن (Get Started) ---
-    UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    closeBtn.backgroundColor = [UIColor colorWithRed:0.2 green:0.4 blue:0.9 alpha:1.0]; // شینێکی تاریکتر و مۆدێرنتر
-    closeBtn.layer.cornerRadius = 20;
-    [closeBtn setTitle:@"Get Started" forState:UIControlStateNormal];
-    [closeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    closeBtn.titleLabel.font = [UIFont systemFontOfSize:19 weight:UIFontWeightBold];
-    [closeBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    // --- دوگمەی سەرەکی (OPEN) ---
+    UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    startBtn.backgroundColor = [UIColor systemBlueColor]; // شینی ئۆرجیناڵی ئەپڵ
+    startBtn.layer.cornerRadius = 16; 
+    [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
+    [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    startBtn.titleLabel.font = [UIFont systemFontOfSize:17 weight:UIFontWeightHeavy];
     
-    // سێبەری دوگمە بۆ جوانی زیاتر
-    closeBtn.layer.shadowColor = [UIColor colorWithRed:0.2 green:0.4 blue:0.9 alpha:1.0].CGColor;
-    closeBtn.layer.shadowOpacity = 0.5;
-    closeBtn.layer.shadowOffset = CGSizeMake(0, 5);
-    closeBtn.layer.shadowRadius = 10;
-    
-    [mainStack addArrangedSubview:closeBtn];
+    [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    [mainStack addArrangedSubview:startBtn];
 
     [NSLayoutConstraint activateConstraints:@[
-        [closeBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
-        [closeBtn.heightAnchor constraintEqualToConstant:60]
+        [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
+        [startBtn.heightAnchor constraintEqualToConstant:50] // گەورە و دیار
     ]];
 }
 
-// پێکردنی ئەنیمەیشن کاتێک شاشەکە دەردەکەوێت
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    // Spring Animation بۆ کارتەکە
-    [UIView animateWithDuration:0.6 delay:0.0 usingSpringWithDamping:0.7 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
-        self.cardView.alpha = 1.0;
-        self.cardView.transform = CGAffineTransformIdentity;
+    // ئەنیمەیشنی دەرکەوتنی نەرم
+    self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
+    [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.glassCard.alpha = 1.0;
+        self.glassCard.transform = CGAffineTransformIdentity;
     } completion:nil];
 }
 
-// فەنکشنی دروستکردنی دوگمە
-- (UIButton *)createSocialButtonWithTitle:(NSString *)title color:(UIColor *)color imageUrl:(NSString *)imageUrl action:(SEL)action {
-    UIButton *btn = [UIButton buttonWithType:UIButtonTypeSystem];
-    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.12]; 
-    btn.layer.cornerRadius = 18; // خڕتر بۆ جوانی
+// سیستەمی خەزنکردن و خێراکردن
+- (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
+    if (sysName) {
+        imgView.image = [UIImage systemImageNamed:sysName];
+        imgView.tintColor = [UIColor colorWithWhite:1.0 alpha:0.4];
+    }
+    
+    NSString *docDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *safeName = [[urlStr componentsSeparatedByString:@"/"] lastObject];
+    NSString *cachePath = [docDir stringByAppendingPathComponent:safeName];
+    
+    NSData *cachedData = [NSData dataWithContentsOfFile:cachePath];
+    
+    if (cachedData) {
+        imgView.image = [UIImage imageWithData:cachedData];
+    } else {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:urlStr]];
+            if (data) {
+                [data writeToFile:cachePath atomically:YES];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    imgView.image = [UIImage imageWithData:data];
+                });
+            }
+        });
+    }
+}
+
+// فەنکشنی نوێ بۆ دوگمەی سۆشیاڵ میدیاکان (ستایلی چوارگۆشەیی خڕ)
+- (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
+    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.07]; 
+    btn.layer.cornerRadius = 16; 
+    btn.layer.borderWidth = 1.0;
+    btn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.05].CGColor;
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
-    
-    UIStackView *contentStack = [[UIStackView alloc] init];
-    contentStack.axis = UILayoutConstraintAxisHorizontal;
-    contentStack.spacing = 12;
-    contentStack.alignment = UIStackViewAlignmentCenter;
-    contentStack.translatesAutoresizingMaskIntoConstraints = NO;
-    contentStack.userInteractionEnabled = NO;
-    [btn addSubview:contentStack];
-    
+
+    UIImageView *icon = [[UIImageView alloc] init];
+    icon.contentMode = UIViewContentModeScaleAspectFit;
+    icon.translatesAutoresizingMaskIntoConstraints = NO;
+    [btn addSubview:icon];
+
     [NSLayoutConstraint activateConstraints:@[
-        [contentStack.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
-        [contentStack.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
-        [contentStack.heightAnchor constraintEqualToConstant:30]
+        [btn.heightAnchor constraintEqualToConstant:55], // بەرزییەکی زۆر گونجاو
+        
+        [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
+        [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
+        [icon.widthAnchor constraintEqualToConstant:30],
+        [icon.heightAnchor constraintEqualToConstant:30]
     ]];
-    
-    UIImageView *iconView = [[UIImageView alloc] init];
-    iconView.contentMode = UIViewContentModeScaleAspectFit;
-    iconView.translatesAutoresizingMaskIntoConstraints = NO;
-    [contentStack addArrangedSubview:iconView];
-    
-    [NSLayoutConstraint activateConstraints:@[
-        [iconView.widthAnchor constraintEqualToConstant:26],
-        [iconView.heightAnchor constraintEqualToConstant:26]
-    ]];
-    
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:imageUrl]];
-        if (data) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                iconView.image = [UIImage imageWithData:data];
-            });
-        }
-    });
-    
-    UILabel *label = [[UILabel alloc] init];
-    label.text = title;
-    label.textColor = color;
-    label.font = [UIFont systemFontOfSize:17 weight:UIFontWeightSemibold];
-    [contentStack addArrangedSubview:label];
-    
-    [NSLayoutConstraint activateConstraints:@[
-        [btn.heightAnchor constraintEqualToConstant:58]
-    ]];
+
+    [self loadAndCacheImage:url forImageView:icon placeholder:ph];
+
     return btn;
 }
 
-// فەنکشنی لەرینەوە (Haptic Feedback)
 - (void)playHaptic {
-    UIImpactFeedbackGenerator *feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
-    [feedback prepare];
-    [feedback impactOccurred];
+    UIImpactFeedbackGenerator *gen = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
+    [gen impactOccurred];
 }
 
-// کارکرنا لینکان لەگەڵ لەرینەوە
-- (void)openTelegram {
-    [self playHaptic];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil];
+- (void)openTelegram { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; 
 }
 
-- (void)openTikTok {
-    [self playHaptic];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil];
+- (void)openWebsite { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; 
 }
 
-- (void)openWebsite {
-    [self playHaptic];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.tututweak.com/"] options:@{} completionHandler:nil];
+- (void)openTikTok { 
+    [self playHaptic]; 
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; 
 }
 
 - (void)closeTapped {
     [self playHaptic];
     [UIView animateWithDuration:0.3 animations:^{
-        self.cardView.alpha = 0.0;
-        self.cardView.transform = CGAffineTransformMakeScale(0.8, 0.8);
+        self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
+        self.view.alpha = 0; 
     } completion:^(BOOL finished) {
-        [self dismissViewControllerAnimated:YES completion:nil];
+        [self dismissViewControllerAnimated:NO completion:nil];
     }];
 }
 
 @end
 
-// ------------------------------------------------------------------
-// بەشێ ئینجێکتکرنێ 
-// ------------------------------------------------------------------
+// --- بەشی ئینجێکتکردن ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        UIWindow *keyWindow = [UIApplication sharedApplication].keyWindow;
-#pragma clang diagnostic pop
-        
-        UIViewController *rootViewController = keyWindow.rootViewController;
-        if (rootViewController) {
-            UIViewController *topController = rootViewController;
-            while (topController.presentedViewController) {
-                topController = topController.presentedViewController;
-            }
-            
-            AshteWelcomeViewController *welcomeVC = [[AshteWelcomeViewController alloc] init];
-            [topController presentViewController:welcomeVC animated:YES completion:nil];
-        }
-    });
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                UIWindow *keyWindow = nil;
+                for (UIWindow *window in [UIApplication sharedApplication].windows) {
+                    if (window.isKeyWindow) { keyWindow = window; break; }
+                }
+                if (keyWindow && keyWindow.rootViewController) {
+                    UIViewController *topController = keyWindow.rootViewController;
+                    while (topController.presentedViewController) { topController = topController.presentedViewController; }
+                    AshteWelcomeViewController *welcomeVC = [[AshteWelcomeViewController alloc] init];
+                    
+                    welcomeVC.modalPresentationStyle = UIModalPresentationOverFullScreen;
+                    
+                    [topController presentViewController:welcomeVC animated:NO completion:nil];
+                }
+            });
+        });
+    }];
 }
