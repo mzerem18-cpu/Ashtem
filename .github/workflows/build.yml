@@ -14,10 +14,15 @@ jobs:
 
       - name: Compile Dylib
         run: |
-          clang -dynamiclib -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -miphoneos-version-min=13.0 -framework Foundation -framework UIKit SocialMenu.m -o SocialMenu.dylib
+          clang -dynamiclib -fobjc-arc \
+          -isysroot $(xcrun --sdk iphoneos --show-sdk-path) \
+          -arch arm64 -miphoneos-version-min=13.0 \
+          -framework Foundation -framework UIKit \
+          AshteMobile.m \
+          -o AshteMobile.dylib
       
       - name: Upload Dylib Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SocialMenu-Dylib
-          path: SocialMenu.dylib
+          name: AshteMobile-Dylib
+          path: AshteMobile.dylib
