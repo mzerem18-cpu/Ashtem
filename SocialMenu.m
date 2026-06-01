@@ -83,7 +83,7 @@
         [self.logoView.heightAnchor constraintEqualToConstant:60]
     ]];
 
-    [self loadAndCacheImage:@"https://ashtemobile.tututweak.com/a.png" forImageView:self.logoView placeholder:@"app.fill"];
+    [self loadAndCacheImage:@"https://ashtemobile.site/a.png" forImageView:self.logoView placeholder:@"app.fill"];
 
     UIStackView *titleStack = [[UIStackView alloc] init];
     titleStack.axis = UILayoutConstraintAxisVertical;
