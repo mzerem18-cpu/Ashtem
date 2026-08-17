@@ -1,9 +1,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <QuartzCore/QuartzCore.h>
 #include <dlfcn.h> 
 #include <stdlib.h>
 
+// ناوی فایلەکەت لێرە دانراوە - دەبێت هەمیشە ناوی SocialMenu.dylib بێت
 #define MY_DYLIB_NAME "SocialMenu.dylib"
 
 @interface AshteWelcomeViewController : UIViewController
@@ -26,26 +26,29 @@
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
-    // باکگراوندی پشتەوە (تەڵخێکی نەرمی تاریک بۆ ئەوەی کارتە ڕووناکەکە دەربکەوێت)
-    UIBlurEffect *bgBlur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
-    UIVisualEffectView *bgBlurView = [[UIVisualEffectView alloc] initWithEffect:bgBlur];
-    bgBlurView.frame = self.view.bounds;
-    bgBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    bgBlurView.alpha = 0.6; // کەمێک ڕووناکتر بۆ ئەوەی زۆر تاریک نەبێت
-    [self.view addSubview:bgBlurView];
+    // ڕووکاری ڕووناک (Light Blur)
+    UIBlurEffect *blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
+    UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+    blurView.frame = self.view.bounds;
+    blurView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:blurView];
 
-    // دروستکردنی کارتی سەرەکی بە شێوازی (Apple Native Glass)
+    // کارتی شوشەیی ڕووناک
     self.glassCard = [[UIView alloc] init];
-    self.glassCard.backgroundColor = [UIColor clearColor];
+    self.glassCard.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.9]; 
+    self.glassCard.layer.cornerRadius = 24;
+    self.glassCard.layer.borderWidth = 1.0;
+    self.glassCard.layer.borderColor = [UIColor colorWithWhite:0.0 alpha:0.1].CGColor;
     
-    // سێبەری پرۆفیشناڵ
+    // سێبەری نەرم بۆ جوانی
     self.glassCard.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.glassCard.layer.shadowOpacity = 0.15;
-    self.glassCard.layer.shadowOffset = CGSizeMake(0, 12);
-    self.glassCard.layer.shadowRadius = 30;
+    self.glassCard.layer.shadowOpacity = 0.12;
+    self.glassCard.layer.shadowOffset = CGSizeMake(0, 10);
+    self.glassCard.layer.shadowRadius = 25;
+    
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
     self.glassCard.alpha = 0; 
-    self.glassCard.transform = CGAffineTransformMakeScale(0.85, 0.85); 
+    self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9); // ئامادەکاری بۆ ئەنیمەیشن
     
     [self.view addSubview:self.glassCard];
     
@@ -53,38 +56,18 @@
         [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
         [self.glassCard.widthAnchor constraintEqualToAnchor:self.view.widthAnchor multiplier:0.85],
-        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:350]
-    ]];
-
-    // ئیفێکتی شوشەیی ڕووناک (Thin Material Light) بۆ ناو کارتەکە
-    UIBlurEffect *cardBlur = [UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterialLight];
-    UIVisualEffectView *cardBlurView = [[UIVisualEffectView alloc] initWithEffect:cardBlur];
-    cardBlurView.translatesAutoresizingMaskIntoConstraints = NO;
-    cardBlurView.layer.cornerRadius = 28;
-    if (@available(iOS 13.0, *)) {
-        cardBlurView.layer.cornerCurve = kCACornerCurveContinuous; // چەماوەیی سافتری ئەپڵ
-    }
-    cardBlurView.clipsToBounds = YES;
-    cardBlurView.layer.borderWidth = 1.0;
-    cardBlurView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.5].CGColor; // هێڵێکی سپی زۆر تەنک
-    [self.glassCard addSubview:cardBlurView];
-
-    [NSLayoutConstraint activateConstraints:@[
-        [cardBlurView.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor],
-        [cardBlurView.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor],
-        [cardBlurView.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor],
-        [cardBlurView.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor]
+        [self.glassCard.widthAnchor constraintLessThanOrEqualToConstant:340]
     ]];
 
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
-    mainStack.spacing = 26;
+    mainStack.spacing = 24;
     mainStack.translatesAutoresizingMaskIntoConstraints = NO;
     [self.glassCard addSubview:mainStack];
 
     [NSLayoutConstraint activateConstraints:@[
-        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:30],
-        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-30],
+        [mainStack.topAnchor constraintEqualToAnchor:self.glassCard.topAnchor constant:28],
+        [mainStack.bottomAnchor constraintEqualToAnchor:self.glassCard.bottomAnchor constant:-28],
         [mainStack.leadingAnchor constraintEqualToAnchor:self.glassCard.leadingAnchor constant:24],
         [mainStack.trailingAnchor constraintEqualToAnchor:self.glassCard.trailingAnchor constant:-24]
     ]];
@@ -95,19 +78,13 @@
     headerStack.alignment = UIStackViewAlignmentCenter;
     [mainStack addArrangedSubview:headerStack];
 
+    // ئایکۆنی لۆگۆ بە شێوەی لاکێشەیی (Squircle)
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
-    self.logoView.layer.cornerRadius = 16; 
-    if (@available(iOS 13.0, *)) { self.logoView.layer.cornerCurve = kCACornerCurveContinuous; }
+    self.logoView.layer.cornerRadius = 14; 
     self.logoView.clipsToBounds = YES;
-    self.logoView.layer.borderWidth = 1.5;
-    self.logoView.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
-    
-    // سێبەر بۆ لۆگۆ
-    self.logoView.layer.shadowColor = [UIColor blackColor].CGColor;
-    self.logoView.layer.shadowOpacity = 0.1;
-    self.logoView.layer.shadowOffset = CGSizeMake(0, 4);
-    self.logoView.layer.shadowRadius = 8;
+    self.logoView.layer.borderWidth = 1.0;
+    self.logoView.layer.borderColor = [UIColor colorWithWhite:0.0 alpha:0.1].CGColor;
     self.logoView.translatesAutoresizingMaskIntoConstraints = NO;
     [headerStack addArrangedSubview:self.logoView];
 
@@ -125,23 +102,22 @@
 
     UILabel *titleLabel = [[UILabel alloc] init];
     titleLabel.text = @"AshteMobile"; 
-    titleLabel.font = [UIFont systemFontOfSize:24 weight:UIFontWeightBlack];
-    titleLabel.textColor = [UIColor blackColor]; 
+    titleLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightHeavy];
+    titleLabel.textColor = [UIColor blackColor]; // ڕەنگی ڕەش بۆ ڕووکاری ڕووناک
     [titleStack addArrangedSubview:titleLabel];
 
     UILabel *subLabel = [[UILabel alloc] init];
     subLabel.text = @"Premium iOS Mod";
-    subLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    subLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
     subLabel.textColor = [UIColor systemBlueColor]; 
     [titleStack addArrangedSubview:subLabel];
 
-    // هێڵی جیاکەرەوە
     UIView *divider = [[UIView alloc] init];
-    divider.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.06];
+    divider.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.08];
     [divider.heightAnchor constraintEqualToConstant:1].active = YES;
     [mainStack addArrangedSubview:divider];
 
-    // چوارچێوەی سۆشیاڵەکان
+    // بەشی سۆشیاڵەکان بە شێوازی Grid
     UIStackView *dockStack = [[UIStackView alloc] init];
     dockStack.axis = UILayoutConstraintAxisHorizontal;
     dockStack.spacing = 16;
@@ -162,30 +138,31 @@
 
     // دوگمەی OPEN
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    startBtn.backgroundColor = [UIColor colorWithRed:0.0 green:0.48 blue:1.0 alpha:1.0]; // شینێکی جوانتری ئەپڵ
-    startBtn.layer.cornerRadius = 16; 
-    if (@available(iOS 13.0, *)) { startBtn.layer.cornerCurve = kCACornerCurveContinuous; }
+    startBtn.backgroundColor = [UIColor systemBlueColor]; 
+    startBtn.layer.cornerRadius = 14; 
     [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
     [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    startBtn.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightBlack];
+    startBtn.titleLabel.font = [UIFont systemFontOfSize:17 weight:UIFontWeightHeavy];
     
+    // زیادکردنی سێبەر بۆ دوگمەکە
     startBtn.layer.shadowColor = [UIColor systemBlueColor].CGColor;
-    startBtn.layer.shadowOpacity = 0.35;
-    startBtn.layer.shadowOffset = CGSizeMake(0, 6);
-    startBtn.layer.shadowRadius = 12;
+    startBtn.layer.shadowOpacity = 0.3;
+    startBtn.layer.shadowOffset = CGSizeMake(0, 4);
+    startBtn.layer.shadowRadius = 8;
     
     [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
     [mainStack addArrangedSubview:startBtn];
 
     [NSLayoutConstraint activateConstraints:@[
         [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
-        [startBtn.heightAnchor constraintEqualToConstant:56] 
+        [startBtn.heightAnchor constraintEqualToConstant:54] 
     ]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [UIView animateWithDuration:0.6 delay:0.0 usingSpringWithDamping:0.7 initialSpringVelocity:0.6 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    // ئەنیمەیشنی Spring بۆ دەرکەوتنێکی نەرم و پرۆفیشناڵ
+    [UIView animateWithDuration:0.5 delay:0.0 usingSpringWithDamping:0.75 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.glassCard.alpha = 1.0;
         self.glassCard.transform = CGAffineTransformIdentity;
     } completion:nil];
@@ -194,7 +171,7 @@
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
     if (sysName) {
         imgView.image = [UIImage systemImageNamed:sysName];
-        imgView.tintColor = [UIColor colorWithWhite:0.0 alpha:0.4];
+        imgView.tintColor = [UIColor colorWithWhite:0.0 alpha:0.3]; // گونجاندن لەگەڵ ڕووکاری ڕووناک
     }
     
     NSString *docDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
@@ -220,18 +197,10 @@
 
 - (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    btn.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.6]; // باکگراوندی ڕووناک و جوان
-    btn.layer.cornerRadius = 16; 
-    if (@available(iOS 13.0, *)) { btn.layer.cornerCurve = kCACornerCurveContinuous; }
+    btn.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.04]; // باکگراوندی کاڵ بۆ سەر سپی
+    btn.layer.cornerRadius = 14; 
     btn.layer.borderWidth = 1.0;
-    btn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.8].CGColor;
-    
-    // کەمێک سێبەری نەرم بۆ دوگمەکان
-    btn.layer.shadowColor = [UIColor blackColor].CGColor;
-    btn.layer.shadowOpacity = 0.05;
-    btn.layer.shadowOffset = CGSizeMake(0, 3);
-    btn.layer.shadowRadius = 5;
-    
+    btn.layer.borderColor = [UIColor colorWithWhite:0.0 alpha:0.05].CGColor;
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
 
     UIImageView *icon = [[UIImageView alloc] init];
@@ -240,11 +209,11 @@
     [btn addSubview:icon];
 
     [NSLayoutConstraint activateConstraints:@[
-        [btn.heightAnchor constraintEqualToConstant:65], 
+        [btn.heightAnchor constraintEqualToConstant:60], 
         [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
         [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
-        [icon.widthAnchor constraintEqualToConstant:34],
-        [icon.heightAnchor constraintEqualToConstant:34]
+        [icon.widthAnchor constraintEqualToConstant:32],
+        [icon.heightAnchor constraintEqualToConstant:32]
     ]];
 
     [self loadAndCacheImage:url forImageView:icon placeholder:ph];
@@ -253,7 +222,7 @@
 }
 
 - (void)playHaptic {
-    UIImpactFeedbackGenerator *gen = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleHeavy];
+    UIImpactFeedbackGenerator *gen = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleMedium];
     [gen impactOccurred];
 }
 
@@ -276,7 +245,7 @@
     [self playHaptic];
     [UIView animateWithDuration:0.3 animations:^{
         self.view.alpha = 0.0; 
-        self.glassCard.transform = CGAffineTransformMakeScale(0.85, 0.85);
+        self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
     } completion:^(BOOL finished) {
         [self dismissViewControllerAnimated:NO completion:nil];
     }];
@@ -284,14 +253,17 @@
 
 @end
 
+// --- بەشی ئینجێکتکردن و پاراستن (Anti-Tamper) ---
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 
+                // پشکنینی قفڵەکە: ئایا فایلەکە سڕاوەتەوە یان ناوی گۆڕاوە؟
                 void *handle = dlopen(MY_DYLIB_NAME, RTLD_NOW);
                 if (!handle) {
+                    // ئەگەر کەسێک فێڵی کردبوو، ڕاستەوخۆ یارییەکە دادەخات!
                     exit(0);
                 }
                 
