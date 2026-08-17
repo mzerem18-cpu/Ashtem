@@ -1,23 +1,18 @@
-name: Build iOS Dylib
+#!/bin/bash
+set -e
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
 
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+clang -dynamiclib \
+  -isysroot "$SDK" \
+  -arch arm64 \
+  -miphoneos-version-min=13.0 \
+  -framework Foundation \
+  -framework UIKit \
+  -framework QuartzCore \
+  -framework CoreGraphics \
+  SocialMenu.m \
+  -o SocialMenu.dylib
 
-      - name: Compile Dylib
-        run: |
-          clang -dynamiclib -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -miphoneos-version-min=13.0 -framework Foundation -framework UIKit -framework CoreGraphics SocialMenu.m -o SocialMenu.dylib
-      
-      - name: Upload Dylib Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SocialMenu-Dylib
-          path: SocialMenu.dylib
+echo "Build successful: SocialMenu.dylib"
+file SocialMenu.dylib
