@@ -1,23 +1,43 @@
-name: Build iOS Dylib
+name: Build SocialMenu dylib
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
+  push:
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Compile Dylib
+      - name: Build Safe dylib
         run: |
-          clang -dynamiclib -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -arch arm64 -miphoneos-version-min=13.0 -framework Foundation -framework UIKit -framework CoreGraphics -framework QuartzCore SocialMenu.m -o SocialMenu.dylib
-      
-      - name: Upload Dylib Artifact
+          mkdir -p out/safe
+          xcrun -sdk iphoneos clang -arch arm64 -dynamiclib -fobjc-arc \
+            -miphoneos-version-min=13.0 \
+            -framework Foundation -framework UIKit \
+            -install_name @executable_path/Frameworks/SocialMenu.dylib \
+            SocialMenu_Safe.m -o out/safe/SocialMenu.dylib
+
+      - name: Build AdBlock dylib
+        run: |
+          mkdir -p out/adblock
+          xcrun -sdk iphoneos clang -arch arm64 -dynamiclib -fobjc-arc \
+            -miphoneos-version-min=13.0 \
+            -framework Foundation -framework UIKit \
+            -install_name @executable_path/Frameworks/SocialMenu.dylib \
+            SocialMenu_AdBlock.m -o out/adblock/SocialMenu.dylib
+
+      - name: Upload Safe
         uses: actions/upload-artifact@v4
         with:
-          name: SocialMenu-Dylib
-          path: SocialMenu.dylib
+          name: SocialMenu-Safe
+          path: out/safe/SocialMenu.dylib
+
+      - name: Upload AdBlock
+        uses: actions/upload-artifact@v4
+        with:
+          name: SocialMenu-AdBlock
+          path: out/adblock/SocialMenu.dylib
