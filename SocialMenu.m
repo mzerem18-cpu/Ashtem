@@ -9,6 +9,11 @@
 // ناوی فایلەکەت لێرە دانراوە - دەبێت هەمیشە ناوی SocialMenu.dylib بێت
 #define MY_DYLIB_NAME "SocialMenu.dylib"
 
+// 1 = ئەگەر dylib نەدۆزرایەوە یاریەکە دادەخات (exit). بۆ تاقیکردنەوە 0 بێت.
+#define ASHTE_ANTI_TAMPER 0
+// 1 = ڕیکلام بلۆککەر چالاکە. ئەگەر هێشتا کراش بوو بیکە 0 بۆ دڵنیابوون.
+#define ASHTE_ENABLE_ADBLOCK 1
+
 // =====================================================
 //                 AD BLOCKER (ڕیکلام بلۆککەر)
 // =====================================================
@@ -47,6 +52,8 @@ static NSArray<NSString *> *AshteBlockedHosts(void) {
 
 static void AshteAddProtocol(NSURLSessionConfiguration *cfg) {
     if (!cfg) return;
+    // سێشنی background پشتگیری NSURLProtocol ناکات و دەبێتە هۆی کێشە
+    if (cfg.identifier != nil) return;
     NSMutableArray *p = cfg.protocolClasses ? [cfg.protocolClasses mutableCopy] : [NSMutableArray array];
     if (![p containsObject:[AshteAdBlocker class]]) {
         [p insertObject:[AshteAdBlocker class] atIndex:0];
@@ -60,26 +67,12 @@ static NSURLSession *hook_sess3(id self, SEL _cmd, NSURLSessionConfiguration *cf
     return orig_sess3(self, _cmd, cfg, del, q);
 }
 
-static NSURLSession *(*orig_sess1)(id, SEL, NSURLSessionConfiguration *);
-static NSURLSession *hook_sess1(id self, SEL _cmd, NSURLSessionConfiguration *cfg) {
-    AshteAddProtocol(cfg);
-    return orig_sess1(self, _cmd, cfg);
-}
-
 static void AshteInstallAdBlock(void) {
     [NSURLProtocol registerClass:[AshteAdBlocker class]];
 
-    Class meta = object_getClass([NSURLSession class]);
-
     Method m3 = class_getClassMethod([NSURLSession class],
         @selector(sessionWithConfiguration:delegate:delegateQueue:));
-    if (m3) orig_sess3 = (void *)method_setImplementation(m3, (IMP)hook_sess3);
-
-    Method m1 = class_getClassMethod([NSURLSession class],
-        @selector(sessionWithConfiguration:));
-    if (m1) orig_sess1 = (void *)method_setImplementation(m1, (IMP)hook_sess1);
-
-    (void)meta;
+    if (m3 && !orig_sess3) orig_sess3 = (void *)method_setImplementation(m3, (IMP)hook_sess3);
 }
 
 // =====================================================
@@ -337,7 +330,7 @@ static void AshteInstallAdBlock(void) {
 
 // پشکنین: ئایا SocialMenu.dylib لە ناو پرۆسەکە بارکراوە؟
 // (لە جیاتی dlopen بە ناوی سادە، لیستی dyld دەپشکنین - متمانەپێکراوترە)
-static BOOL AshteDylibIsLoaded(void) {
+__attribute__((unused)) static BOOL AshteDylibIsLoaded(void) {
     uint32_t count = _dyld_image_count();
     for (uint32_t i = 0; i < count; i++) {
         const char *name = _dyld_get_image_name(i);
@@ -348,7 +341,9 @@ static BOOL AshteDylibIsLoaded(void) {
 
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
     // ڕیکلام بلۆککەر - دەبێت زوو دابمەزرێت پێش ئەوەی SDKەکان دەست پێ بکەن
+#if ASHTE_ENABLE_ADBLOCK
     AshteInstallAdBlock();
+#endif
 
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
@@ -356,9 +351,11 @@ __attribute__((constructor)) static void showCustomWelcomeScreen() {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 
                 // پشکنینی قفڵەکە: ئایا فایلەکە سڕاوەتەوە یان ناوی گۆڕاوە؟
+#if ASHTE_ANTI_TAMPER
                 if (!AshteDylibIsLoaded()) {
                     exit(0);
                 }
+#endif
 
                 UIWindow *keyWindow = nil;
                 for (UIWindow *window in [UIApplication sharedApplication].windows) {
