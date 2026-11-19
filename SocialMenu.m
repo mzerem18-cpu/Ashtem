@@ -1,14 +1,94 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#include <dlfcn.h> 
+#import <objc/runtime.h>
+#include <dlfcn.h>
 #include <stdlib.h>
+#include <string.h>
+#include <mach-o/dyld.h>
 
 // ناوی فایلەکەت لێرە دانراوە - دەبێت هەمیشە ناوی SocialMenu.dylib بێت
 #define MY_DYLIB_NAME "SocialMenu.dylib"
 
+// =====================================================
+//                 AD BLOCKER (ڕیکلام بلۆککەر)
+// =====================================================
+
+static NSArray<NSString *> *AshteBlockedHosts(void) {
+    static NSArray *hosts; static dispatch_once_t t;
+    dispatch_once(&t, ^{
+        hosts = @[@"doubleclick.net", @"googlesyndication.com", @"googleadservices.com",
+                  @"admob.com", @"unityads.unity3d.com", @"applovin.com", @"ironsrc.com",
+                  @"supersonicads.com", @"vungle.com", @"chartboost.com", @"adcolony.com",
+                  @"inmobi.com", @"startappservice.com", @"mintegral.com", @"an.facebook.com",
+                  @"adnxs.com", @"pangle.io", @"byteoversea.com", @"tapjoy.com", @"fyber.com"];
+    });
+    return hosts;
+}
+
+@interface AshteAdBlocker : NSURLProtocol
+@end
+
+@implementation AshteAdBlocker
++ (BOOL)canInitWithRequest:(NSURLRequest *)r {
+    NSString *host = r.URL.host.lowercaseString;
+    if (!host) return NO;
+    for (NSString *h in AshteBlockedHosts()) {
+        if ([host isEqualToString:h] || [host hasSuffix:[@"." stringByAppendingString:h]]) return YES;
+    }
+    return NO;
+}
++ (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)r { return r; }
+- (void)startLoading {
+    NSError *e = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorNotConnectedToInternet userInfo:nil];
+    [self.client URLProtocol:self didFailWithError:e];
+}
+- (void)stopLoading {}
+@end
+
+static void AshteAddProtocol(NSURLSessionConfiguration *cfg) {
+    if (!cfg) return;
+    NSMutableArray *p = cfg.protocolClasses ? [cfg.protocolClasses mutableCopy] : [NSMutableArray array];
+    if (![p containsObject:[AshteAdBlocker class]]) {
+        [p insertObject:[AshteAdBlocker class] atIndex:0];
+        cfg.protocolClasses = p;
+    }
+}
+
+static NSURLSession *(*orig_sess3)(id, SEL, NSURLSessionConfiguration *, id, NSOperationQueue *);
+static NSURLSession *hook_sess3(id self, SEL _cmd, NSURLSessionConfiguration *cfg, id del, NSOperationQueue *q) {
+    AshteAddProtocol(cfg);
+    return orig_sess3(self, _cmd, cfg, del, q);
+}
+
+static NSURLSession *(*orig_sess1)(id, SEL, NSURLSessionConfiguration *);
+static NSURLSession *hook_sess1(id self, SEL _cmd, NSURLSessionConfiguration *cfg) {
+    AshteAddProtocol(cfg);
+    return orig_sess1(self, _cmd, cfg);
+}
+
+static void AshteInstallAdBlock(void) {
+    [NSURLProtocol registerClass:[AshteAdBlocker class]];
+
+    Class meta = object_getClass([NSURLSession class]);
+
+    Method m3 = class_getClassMethod([NSURLSession class],
+        @selector(sessionWithConfiguration:delegate:delegateQueue:));
+    if (m3) orig_sess3 = (void *)method_setImplementation(m3, (IMP)hook_sess3);
+
+    Method m1 = class_getClassMethod([NSURLSession class],
+        @selector(sessionWithConfiguration:));
+    if (m1) orig_sess1 = (void *)method_setImplementation(m1, (IMP)hook_sess1);
+
+    (void)meta;
+}
+
+// =====================================================
+//                 WELCOME SCREEN
+// =====================================================
+
 @interface AshteWelcomeViewController : UIViewController
 @property (nonatomic, strong) UIView *glassCard;
-@property (nonatomic, strong) UIImageView *logoView; 
+@property (nonatomic, strong) UIImageView *logoView;
 - (void)openTelegram;
 - (void)openTikTok;
 - (void)openWebsite;
@@ -22,7 +102,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     self.view.backgroundColor = [UIColor clearColor];
     self.modalPresentationStyle = UIModalPresentationOverFullScreen;
 
@@ -35,23 +115,23 @@
 
     // کارتی شوشەیی ڕووناک
     self.glassCard = [[UIView alloc] init];
-    self.glassCard.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.9]; 
+    self.glassCard.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.9];
     self.glassCard.layer.cornerRadius = 24;
     self.glassCard.layer.borderWidth = 1.0;
     self.glassCard.layer.borderColor = [UIColor colorWithWhite:0.0 alpha:0.1].CGColor;
-    
+
     // سێبەری نەرم بۆ جوانی
     self.glassCard.layer.shadowColor = [UIColor blackColor].CGColor;
     self.glassCard.layer.shadowOpacity = 0.12;
     self.glassCard.layer.shadowOffset = CGSizeMake(0, 10);
     self.glassCard.layer.shadowRadius = 25;
-    
+
     self.glassCard.translatesAutoresizingMaskIntoConstraints = NO;
-    self.glassCard.alpha = 0; 
-    self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9); // ئامادەکاری بۆ ئەنیمەیشن
-    
+    self.glassCard.alpha = 0;
+    self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
+
     [self.view addSubview:self.glassCard];
-    
+
     [NSLayoutConstraint activateConstraints:@[
         [self.glassCard.centerXAnchor constraintEqualToAnchor:self.view.centerXAnchor],
         [self.glassCard.centerYAnchor constraintEqualToAnchor:self.view.centerYAnchor],
@@ -81,7 +161,7 @@
     // ئایکۆنی لۆگۆ بە شێوەی لاکێشەیی (Squircle)
     self.logoView = [[UIImageView alloc] init];
     self.logoView.contentMode = UIViewContentModeScaleAspectFill;
-    self.logoView.layer.cornerRadius = 14; 
+    self.logoView.layer.cornerRadius = 14;
     self.logoView.clipsToBounds = YES;
     self.logoView.layer.borderWidth = 1.0;
     self.logoView.layer.borderColor = [UIColor colorWithWhite:0.0 alpha:0.1].CGColor;
@@ -101,15 +181,15 @@
     [headerStack addArrangedSubview:titleStack];
 
     UILabel *titleLabel = [[UILabel alloc] init];
-    titleLabel.text = @"AshteMobile"; 
+    titleLabel.text = @"AshteMobile";
     titleLabel.font = [UIFont systemFontOfSize:22 weight:UIFontWeightHeavy];
-    titleLabel.textColor = [UIColor blackColor]; // ڕەنگی ڕەش بۆ ڕووکاری ڕووناک
+    titleLabel.textColor = [UIColor blackColor];
     [titleStack addArrangedSubview:titleLabel];
 
     UILabel *subLabel = [[UILabel alloc] init];
     subLabel.text = @"Premium iOS Mod";
     subLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightSemibold];
-    subLabel.textColor = [UIColor systemBlueColor]; 
+    subLabel.textColor = [UIColor systemBlueColor];
     [titleStack addArrangedSubview:subLabel];
 
     UIView *divider = [[UIView alloc] init];
@@ -138,30 +218,28 @@
 
     // دوگمەی OPEN
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    startBtn.backgroundColor = [UIColor systemBlueColor]; 
-    startBtn.layer.cornerRadius = 14; 
+    startBtn.backgroundColor = [UIColor systemBlueColor];
+    startBtn.layer.cornerRadius = 14;
     [startBtn setTitle:@"OPEN" forState:UIControlStateNormal];
     [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     startBtn.titleLabel.font = [UIFont systemFontOfSize:17 weight:UIFontWeightHeavy];
-    
-    // زیادکردنی سێبەر بۆ دوگمەکە
+
     startBtn.layer.shadowColor = [UIColor systemBlueColor].CGColor;
     startBtn.layer.shadowOpacity = 0.3;
     startBtn.layer.shadowOffset = CGSizeMake(0, 4);
     startBtn.layer.shadowRadius = 8;
-    
+
     [startBtn addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
     [mainStack addArrangedSubview:startBtn];
 
     [NSLayoutConstraint activateConstraints:@[
         [startBtn.widthAnchor constraintEqualToAnchor:mainStack.widthAnchor],
-        [startBtn.heightAnchor constraintEqualToConstant:54] 
+        [startBtn.heightAnchor constraintEqualToConstant:54]
     ]];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    // ئەنیمەیشنی Spring بۆ دەرکەوتنێکی نەرم و پرۆفیشناڵ
     [UIView animateWithDuration:0.5 delay:0.0 usingSpringWithDamping:0.75 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.glassCard.alpha = 1.0;
         self.glassCard.transform = CGAffineTransformIdentity;
@@ -171,15 +249,15 @@
 - (void)loadAndCacheImage:(NSString *)urlStr forImageView:(UIImageView *)imgView placeholder:(NSString *)sysName {
     if (sysName) {
         imgView.image = [UIImage systemImageNamed:sysName];
-        imgView.tintColor = [UIColor colorWithWhite:0.0 alpha:0.3]; // گونجاندن لەگەڵ ڕووکاری ڕووناک
+        imgView.tintColor = [UIColor colorWithWhite:0.0 alpha:0.3];
     }
-    
+
     NSString *docDir = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
     NSString *safeName = [[urlStr componentsSeparatedByString:@"/"] lastObject];
     NSString *cachePath = [docDir stringByAppendingPathComponent:safeName];
-    
+
     NSData *cachedData = [NSData dataWithContentsOfFile:cachePath];
-    
+
     if (cachedData) {
         imgView.image = [UIImage imageWithData:cachedData];
     } else {
@@ -197,8 +275,8 @@
 
 - (UIButton *)createModernBlockButton:(NSString *)url placeholder:(NSString *)ph action:(SEL)action {
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    btn.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.04]; // باکگراوندی کاڵ بۆ سەر سپی
-    btn.layer.cornerRadius = 14; 
+    btn.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.04];
+    btn.layer.cornerRadius = 14;
     btn.layer.borderWidth = 1.0;
     btn.layer.borderColor = [UIColor colorWithWhite:0.0 alpha:0.05].CGColor;
     [btn addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
@@ -209,7 +287,7 @@
     [btn addSubview:icon];
 
     [NSLayoutConstraint activateConstraints:@[
-        [btn.heightAnchor constraintEqualToConstant:60], 
+        [btn.heightAnchor constraintEqualToConstant:60],
         [icon.centerXAnchor constraintEqualToAnchor:btn.centerXAnchor],
         [icon.centerYAnchor constraintEqualToAnchor:btn.centerYAnchor],
         [icon.widthAnchor constraintEqualToConstant:32],
@@ -226,25 +304,25 @@
     [gen impactOccurred];
 }
 
-- (void)openTelegram { 
-    [self playHaptic]; 
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil]; 
+- (void)openTelegram {
+    [self playHaptic];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://t.me/ashtemobile"] options:@{} completionHandler:nil];
 }
 
-- (void)openWebsite { 
-    [self playHaptic]; 
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil]; 
+- (void)openWebsite {
+    [self playHaptic];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://ashtemobile.site"] options:@{} completionHandler:nil];
 }
 
-- (void)openTikTok { 
-    [self playHaptic]; 
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil]; 
+- (void)openTikTok {
+    [self playHaptic];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.tiktok.com/@ashtemobile"] options:@{} completionHandler:nil];
 }
 
 - (void)closeTapped {
     [self playHaptic];
     [UIView animateWithDuration:0.3 animations:^{
-        self.view.alpha = 0.0; 
+        self.view.alpha = 0.0;
         self.glassCard.transform = CGAffineTransformMakeScale(0.9, 0.9);
     } completion:^(BOOL finished) {
         [self dismissViewControllerAnimated:NO completion:nil];
@@ -253,20 +331,35 @@
 
 @end
 
-// --- بەشی ئینجێکتکردن و پاراستن (Anti-Tamper) ---
+// =====================================================
+//        ئینجێکت و پاراستن (Anti-Tamper)
+// =====================================================
+
+// پشکنین: ئایا SocialMenu.dylib لە ناو پرۆسەکە بارکراوە؟
+// (لە جیاتی dlopen بە ناوی سادە، لیستی dyld دەپشکنین - متمانەپێکراوترە)
+static BOOL AshteDylibIsLoaded(void) {
+    uint32_t count = _dyld_image_count();
+    for (uint32_t i = 0; i < count; i++) {
+        const char *name = _dyld_get_image_name(i);
+        if (name && strstr(name, MY_DYLIB_NAME)) return YES;
+    }
+    return NO;
+}
+
 __attribute__((constructor)) static void showCustomWelcomeScreen() {
+    // ڕیکلام بلۆککەر - دەبێت زوو دابمەزرێت پێش ئەوەی SDKەکان دەست پێ بکەن
+    AshteInstallAdBlock();
+
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidBecomeActiveNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                
+
                 // پشکنینی قفڵەکە: ئایا فایلەکە سڕاوەتەوە یان ناوی گۆڕاوە؟
-                void *handle = dlopen(MY_DYLIB_NAME, RTLD_NOW);
-                if (!handle) {
-                    // ئەگەر کەسێک فێڵی کردبوو، ڕاستەوخۆ یارییەکە دادەخات!
+                if (!AshteDylibIsLoaded()) {
                     exit(0);
                 }
-                
+
                 UIWindow *keyWindow = nil;
                 for (UIWindow *window in [UIApplication sharedApplication].windows) {
                     if (window.isKeyWindow) { keyWindow = window; break; }
@@ -275,9 +368,9 @@ __attribute__((constructor)) static void showCustomWelcomeScreen() {
                     UIViewController *topController = keyWindow.rootViewController;
                     while (topController.presentedViewController) { topController = topController.presentedViewController; }
                     AshteWelcomeViewController *welcomeVC = [[AshteWelcomeViewController alloc] init];
-                    
+
                     welcomeVC.modalPresentationStyle = UIModalPresentationOverFullScreen;
-                    
+
                     [topController presentViewController:welcomeVC animated:NO completion:nil];
                 }
             });
