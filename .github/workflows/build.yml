@@ -17,7 +17,7 @@ jobs:
           mkdir -p out/safe
           xcrun -sdk iphoneos clang -arch arm64 -dynamiclib -fobjc-arc \
             -miphoneos-version-min=13.0 \
-            -framework Foundation -framework UIKit \
+            -framework Foundation -framework UIKit -framework CoreGraphics -framework QuartzCore \
             -install_name @executable_path/Frameworks/SocialMenu.dylib \
             SocialMenu_Safe.m -o out/safe/SocialMenu.dylib
 
@@ -26,7 +26,7 @@ jobs:
           mkdir -p out/adblock
           xcrun -sdk iphoneos clang -arch arm64 -dynamiclib -fobjc-arc \
             -miphoneos-version-min=13.0 \
-            -framework Foundation -framework UIKit \
+            -framework Foundation -framework UIKit -framework CoreGraphics -framework QuartzCore \
             -install_name @executable_path/Frameworks/SocialMenu.dylib \
             SocialMenu_AdBlock.m -o out/adblock/SocialMenu.dylib
 
